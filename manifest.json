@@ -1,0 +1,11 @@
+{
+  "name": "NOKTA TEDARİK Şoför Paneli",
+  "short_name": "Şoför Paneli",
+  "start_url": "sofor",
+  "display": "standalone",
+  "background_color": "#0e1b2c",
+  "theme_color": "#0e1b2c",
+  "icons": [
+    { "src": "NoktaTedarik-Logo.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}

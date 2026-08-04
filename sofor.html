@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e1b2c">
+<link rel="manifest" href="manifest.json">
 <title>NOKTA TEDARİK — Şoför Paneli</title>
 <style>
   :root { --turuncu:#f77f00; --turuncu-koyu:#d96b00; --mavi:#0e1b2c; --yesil:#1faa4c; }
@@ -184,6 +186,52 @@
     yukle();
     setInterval(yukle, 4000);
   }
+
+  var bildirimIsmi = 'NOKTA TEDARİK';
+  function bildirimIzinIste() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') return;
+    Notification.requestPermission().then(function (p) {
+      if (p === 'granted') baglanti.textContent = 'Çevrimiçi — bildirimler açık';
+    });
+  }
+  function bildirimGonder(metin) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+      navigator.serviceWorker.ready.then(function (reg) {
+        reg.showNotification(bildirimIsmi, { body: metin, icon: 'NoktaTedarik-Logo.jpg', badge: 'NoktaTedarik-Logo.jpg', tag: 'hatirlatma' });
+      });
+    } catch (e) { }
+  }
+
+  function hatirlatmaKontrol() {
+    if (!sehir) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    var gun = tarihYaz(new Date());
+    if (localStorage.getItem('hatir-gun') === gun && localStorage.getItem('hatir-sayildi')) return;
+    var simdi = new Date();
+    var teslimSayi = 0;
+    for (var k in durumlar) teslimSayi++;
+    var saat = simdi.getHours() + simdi.getMinutes() / 60;
+    if (saat >= 16 && teslimSayi < 30) {
+      bildirimGonder((30 - teslimSayi) + ' mağaza henüz işaretlenmedi! Bugünkü teslimatı kontrol et.');
+      localStorage.setItem('hatir-gun', gun);
+      localStorage.setItem('hatir-sayildi', '1');
+    } else if (saat >= 12 && teslimSayi < 5) {
+      bildirimGonder('Henüz teslim işaretlemedin — teslim edilen mağazaları işaretlemeyi unutma!');
+      localStorage.setItem('hatir-gun', gun);
+      localStorage.setItem('hatir-sayildi', '1');
+    }
+  }
+
+  function pwaKur() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function () { });
+    }
+    setTimeout(bildirimIzinIste, 2000);
+    setInterval(hatirlatmaKontrol, 300000);
+  }
+  pwaKur();
 
   if (localStorage.getItem('sofor-pin') === 'ok') {
     girisKap.style.display = 'none';
