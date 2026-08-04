@@ -65,6 +65,9 @@
   var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
   var HAFTA = ['', 'Samsun', 'Amasya', 'Çorum', 'Sivas', 'Yozgat', ''];
   var MAGAZA_SAYISI = 30;
+</script>
+<script src="magazalar.js"></script>
+<script>
 
   function bugunkuSehir() { return HAFTA[new Date().getDay()]; }
   function tarihYaz(d) {
@@ -112,12 +115,23 @@
 
   var durumlar = {};
   function listeCiz() {
+    var gunlukListe = null;
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      if (MAGAZALAR[l].sehir === sehir.toUpperCase()) { gunlukListe = MAGAZALAR[l].magazalar; break; }
+    }
+    var toplamMagaza = gunlukListe ? gunlukListe.length : MAGAZA_SAYISI;
     var html = '';
-    for (var i = 1; i <= MAGAZA_SAYISI; i++) {
+    for (var i = 1; i <= toplamMagaza; i++) {
       var d = durumlar[i] || null;
+      var ad = 'Mağaza ' + i;
+      var alt = '';
+      if (gunlukListe && gunlukListe[i - 1]) {
+        ad = gunlukListe[i - 1].m;
+        alt = gunlukListe[i - 1].i;
+      }
       html += '<div class="magaza">' +
-        '<div><div class="ad">Mağaza ' + i + '</div>' +
-        '<div class="saat">' + (d ? 'Teslim: ' + d.saat : 'Bekliyor') + '</div></div>' +
+        '<div><div class="ad">' + ad + '</div>' +
+        '<div class="saat">' + (d ? 'Teslim: ' + d.saat : alt || 'Bekliyor') + '</div></div>' +
         (d
           ? '<button class="btn tamam">✓ Teslim Edildi</button>'
           : '<button class="btn teslim" data-no="' + i + '">Teslim Edildi</button>') +
@@ -126,7 +140,7 @@
     liste.innerHTML = html;
     var toplam = 0;
     for (var k in durumlar) toplam++;
-    document.getElementById('ozet-sayi').textContent = toplam + ' / ' + MAGAZA_SAYISI;
+    document.getElementById('ozet-sayi').textContent = toplam + ' / ' + toplamMagaza;
     document.getElementById('ozet-tamam').textContent = toplam;
   }
 
