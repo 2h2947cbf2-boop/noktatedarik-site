@@ -400,6 +400,7 @@
   .ops-sehir .etiket { font-size: 13px; font-weight: 800; fill: #fff; letter-spacing: 1.5px; paint-order: stroke; stroke: rgba(5, 12, 22, .8); stroke-width: 3px; }
   .ops-sehir .teslim { font-size: 15px; font-weight: 800; fill: #7ed957; opacity: 0; transition: opacity .4s; paint-order: stroke; stroke: rgba(5, 12, 22, .85); stroke-width: 3px; }
   .ops-sehir .teslim.gorunur { opacity: 1; }
+  .ops-pat { fill: none; stroke: rgba(247, 127, 0, .8); stroke-width: 3; pointer-events: none; }
   .ops-nabız { fill: rgba(247, 127, 0, .9); filter: drop-shadow(0 0 10px rgba(247, 127, 0, 1)); }
   .ops-kamyon { filter: drop-shadow(0 14px 14px rgba(0, 0, 0, .6)); }
 
@@ -1329,6 +1330,16 @@
       nabizlar.push({ el: n, olustu: -999999 });
     }
 
+    var dalgaSayisi = 4;
+    var dalgalar = [];
+    for (var dg = 0; dg < dalgaSayisi; dg++) {
+      var dl = document.createElementNS(opsNS, 'circle');
+      dl.setAttribute('class', 'ops-pat');
+      dl.style.display = 'none';
+      opsSvg.appendChild(dl);
+      dalgalar.push(dl);
+    }
+
     var hazir = false;
     var yolUzunluk = 1;
     var parcalar = [];
@@ -1357,12 +1368,40 @@
     var sonGecis = -1;
     var teslimZaman = {};
     function opsKare(simdi) {
+      var gunBugun = haftalikRota[new Date().getDay()];
+      var patlamaSehir = gunBugun ? gunBugun.toUpperCase() : '';
+      var patMerkez = null;
+      for (var ps = 0; ps < opsSehirler.length; ps++) {
+        if (opsSehirler[ps].ad === patlamaSehir) { patMerkez = opsSehirler[ps]; break; }
+      }
+      if (patMerkez) {
+        var sur = 2400;
+        for (var dw = 0; dw < dalgalar.length; dw++) {
+          var oran = ((simdi - baslangic) / sur + dw / dalgalar.length) % 1;
+          var dl = dalgalar[dw];
+          dl.style.display = '';
+          dl.setAttribute('cx', patMerkez.x);
+          dl.setAttribute('cy', patMerkez.y);
+          dl.setAttribute('r', 16 + oran * 130);
+          dl.setAttribute('opacity', (1 - oran) * 0.75);
+        }
+        var pul = 1 + 0.28 * Math.abs(Math.sin((simdi - baslangic) / 500));
+        var kG = 150 * pul;
+        kamyon.setAttribute('x', patMerkez.x - kG / 2);
+        kamyon.setAttribute('y', patMerkez.y - kG * 0.6);
+        kamyon.setAttribute('width', kG);
+        kamyon.setAttribute('height', kG * 0.61);
+      } else {
+        for (var dg2 = 0; dg2 < dalgalar.length; dg2++) dalgalar[dg2].style.display = 'none';
+      }
       if (!hazir) { hazir = opsHazirla(); }
       if (hazir) {
         var u = ((simdi - baslangic) / gece) % 1;
-        var nokta = yolNokta(u);
-        kamyon.setAttribute('x', nokta.x - 70);
-        kamyon.setAttribute('y', nokta.y - 40);
+        if (!patMerkez) {
+          var nokta = yolNokta(u);
+          kamyon.setAttribute('x', nokta.x - 70);
+          kamyon.setAttribute('y', nokta.y - 40);
+        }
         for (var i = 0; i < varisOranlari.length; i++) {
           if (u >= varisOranlari[i] && sonGecis < i) {
             sonGecis = i;
