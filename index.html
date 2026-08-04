@@ -1566,7 +1566,7 @@
   }
   function canliDurum(t, sehir) {
     var varis = varisSaati(sehir);
-    var donus = varis + 7.5;
+    var donus = varis + 30 * 15 / 60;
     if (t < 7.5) return { tip: 'hazirlik', ilerleme: 0, tamam: 0, yolda: 'Depo yükleme saat 07:30’da başlayacak' };
     if (t < 8) return { tip: 'yukleme', ilerleme: 0, tamam: 0, yolda: 'Depoda yükleme yapılıyor' };
     if (t < varis) return { tip: 'yolda', ilerleme: (t - 8) / (varis - 8) * 0.3, tamam: 0, yolda: 'Tokat → ' + sehir + ' · ' + ilKm[sehir] + ' km' };
