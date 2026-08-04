@@ -1483,6 +1483,7 @@
     opSatir('op-yol', d2 && d2.tip === 'yolda');
     opSatir('op-teslim', d2 && d2.tip === 'teslimat');
     opSatir('op-sehir', d2 && d2.tip === 'teslimat');
+    opSatir('op-donus', d2 && d2.tip === 'tamam');
     document.getElementById('op-sayi').textContent = d2 ? d2.tamam + ' / 30' : '—';
     document.getElementById('op-sehir-ad').textContent = sehir2 ? sehir2 : '—';
     var yuzde = 0;
@@ -1604,7 +1605,6 @@
     document.getElementById('rota-donus').textContent = haftaIci ? saatYaz(varisSaati(sehir) + 7.5) : '—';
     document.getElementById('op-varis-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir)) : '—';
     document.getElementById('op-donus-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir) + 7.5) : '—';
-    opSatir('op-donus', d2 && d2.tip === 'tamam');
     document.getElementById('canli-cikis').innerHTML = haftaIci
       ? 'Tokat Merkez — DEPO YÜKLEME 07:30<br>Tokat Merkez — ÇIKIŞ 08:00' : '—';
 
