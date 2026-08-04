@@ -63,6 +63,10 @@
     <div><span>Bugünkü teslimat</span><br><b id="ozet-sayi">0 / 30</b></div>
     <div style="text-align:right;"><span>Teslim edilen</span><br><b id="ozet-tamam">0</b></div>
   </div>
+  <div style="padding:10px 16px; background:#fff; border-bottom:1px solid #e3eaf2; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+    <div style="font-size:.78rem; color:#6b7f94;">Tahmini dönüş: <b style="color:var(--turuncu-koyu);" id="donus-saat">—</b></div>
+    <a class="btn teslim" id="depo-btn" href="tel:+905467606608" style="text-decoration:none; padding:9px 14px; font-size:.78rem;">📞 DEPOYU ARA</a>
+  </div>
   <div class="liste" id="liste"></div>
   <div style="padding:0 16px 8px;"><button class="btn teslim" id="test-btn" style="width:100%;">TEST BİLDİRİMİ GÖNDER</button></div>
   <div class="baglanti" id="baglanti">Bağlantı kuruluyor...</div>
@@ -136,6 +140,25 @@
   });
 
   var durumlar = {};
+  var ilKm = { Samsun: 150, Amasya: 90, Çorum: 180, Sivas: 95, Yozgat: 160, Kayseri: 220 };
+  var ortalamaHiz = 85;
+  function varisSaati(s) {
+    var km = ilKm[s] || 100;
+    var saatDegeri = 8 + km / ortalamaHiz;
+    var tamsayi = Math.floor(saatDegeri);
+    var dakika = Math.round((saatDegeri - tamsayi) * 60);
+    if (dakika === 60) { tamsayi++; dakika = 0; }
+    return ('0' + tamsayi).slice(-2) + ':' + ('0' + dakika).slice(-2);
+  }
+  function donusSaati(s) {
+    var km = ilKm[s] || 100;
+    var saatDegeri = 8 + km / ortalamaHiz + 30 * 15 / 60;
+    var tamsayi = Math.floor(saatDegeri);
+    var dakika = Math.round((saatDegeri - tamsayi) * 60);
+    if (dakika === 60) { tamsayi++; dakika = 0; }
+    if (tamsayi >= 24) tamsayi -= 24;
+    return ('0' + tamsayi).slice(-2) + ':' + ('0' + dakika).slice(-2);
+  }
   function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
   function listeCiz() {
     var gunlukListe = null;
@@ -157,7 +180,7 @@
         '<div><div class="ad">' + ad + '</div>' +
         '<div class="saat">' + (d ? 'Teslim: ' + d.saat : alt || 'Bekliyor') + '</div></div>' +
         (d
-          ? '<button class="btn tamam">✓ Teslim Edildi</button>'
+          ? '<button class="btn tamam" data-geri="' + i + '">✓ Teslim Edildi</button>'
           : '<button class="btn teslim" data-no="' + i + '">Teslim Edildi</button>') +
         '</div>';
     }
@@ -166,22 +189,36 @@
     for (var k in durumlar) toplam++;
     document.getElementById('ozet-sayi').textContent = toplam + ' / ' + toplamMagaza;
     document.getElementById('ozet-tamam').textContent = toplam;
+    document.getElementById('donus-saat').textContent = sehir ? donusSaati(sehir) : '—';
   }
 
   liste.addEventListener('click', function (e) {
     var btn = e.target.closest('.btn.teslim');
-    if (!btn) return;
-    var no = btn.getAttribute('data-no');
-    var adres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no + '.json';
-    fetch(adres, {
-      method: 'PUT',
-      body: JSON.stringify({ saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) })
-    }).then(function () {
-      durumlar[no] = { saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) };
-      listeCiz();
-    }).catch(function () {
-      baglanti.textContent = 'Bağlantı hatası — Firebase adresi kurulmadı';
-    });
+    if (btn) {
+      var no = btn.getAttribute('data-no');
+      var adres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no + '.json';
+      fetch(adres, {
+        method: 'PUT',
+        body: JSON.stringify({ saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) })
+      }).then(function () {
+        durumlar[no] = { saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) };
+        listeCiz();
+      }).catch(function () {
+        baglanti.textContent = 'Bağlantı hatası — Firebase adresi kurulmadı';
+      });
+      return;
+    }
+    var geriBtn = e.target.closest('.btn.tamam');
+    if (geriBtn && confirm('Bu mağazanın teslim işaretini geri al? Sayı düşer.')) {
+      var no2 = geriBtn.getAttribute('data-geri');
+      var adres2 = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no2 + '.json';
+      fetch(adres2, { method: 'DELETE' }).then(function () {
+        delete durumlar[no2];
+        listeCiz();
+      }).catch(function () {
+        baglanti.textContent = 'Bağlantı hatası';
+      });
+    }
   });
 
   function yukle() {
