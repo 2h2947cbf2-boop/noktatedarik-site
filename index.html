@@ -914,6 +914,10 @@
           <span class="ikon">🕒</span>
           <div class="sol"><b id="op-varis-saat">16:30</b><span>Tahmini varış</span></div>
         </div>
+        <div class="oper-satir" id="op-donus">
+          <span class="ikon">🔙</span>
+          <div class="sol"><b id="op-donus-saat">—</b><span>Tahmini dönüş</span></div>
+        </div>
       </div>
       <div class="oper-kutular">
         <div class="oper-kutu"><div class="sayi" data-sayac="600">0</div><div class="etiket">MAĞAZA</div></div>
@@ -1599,6 +1603,8 @@
     document.getElementById('rota-aralik').textContent = haftaIci ? saatYaz(varisSaati(sehir)) + '–' + saatYaz(varisSaati(sehir) + 7.5) : '—';
     document.getElementById('rota-donus').textContent = haftaIci ? saatYaz(varisSaati(sehir) + 7.5) : '—';
     document.getElementById('op-varis-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir)) : '—';
+    document.getElementById('op-donus-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir) + 7.5) : '—';
+    opSatir('op-donus', d2 && d2.tip === 'tamam');
     document.getElementById('canli-cikis').innerHTML = haftaIci
       ? 'Tokat Merkez — DEPO YÜKLEME 07:30<br>Tokat Merkez — ÇIKIŞ 08:00' : '—';
 
