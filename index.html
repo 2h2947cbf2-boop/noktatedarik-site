@@ -1573,7 +1573,7 @@
       .catch(function () { firebaseTamam = -1; });
   }
   function gosterTamam(sayi) {
-    return firebaseTamam > 0 ? Math.min(30, firebaseTamam) : sayi;
+    return firebaseTamam >= 0 ? Math.min(30, firebaseTamam) : sayi;
   }
   function varisSaati(sehir) {
     return 8 + (ilKm[sehir] || 150) / ortalamaHiz;
