@@ -1453,6 +1453,7 @@
     document.getElementById('ops-ara').textContent = sehir2 ? '1' : '0';
   }
 
+  urunleriDoldur();
   if ('IntersectionObserver' in window) {
     var goz = new IntersectionObserver(function (girdiler) {
       girdiler.forEach(function (g) {
@@ -1640,7 +1641,6 @@
   }
 
   document.getElementById('yil').textContent = new Date().getFullYear();
-  urunleriDoldur();
 </script>
 </body>
 </html>
