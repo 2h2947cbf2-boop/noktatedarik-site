@@ -910,7 +910,7 @@
         </div>
         <div class="oper-satir" id="op-varis">
           <span class="ikon">🕒</span>
-          <div class="sol"><b>16:30</b><span>Tahmini varış</span></div>
+          <div class="sol"><b id="op-varis-saat">16:30</b><span>Tahmini varış</span></div>
         </div>
       </div>
       <div class="oper-kutular">
@@ -939,16 +939,16 @@
         <div><b>YOLA ÇIKIŞ</b><br><span style="font-size:.78rem;opacity:.8;">Tokat Merkez · 08:00</span></div>
         <span class="durum">Bekliyor</span>
       </div>
-      <div class="durak durak-3">
-        <div><b>YOLDA</b><br><span style="font-size:.78rem;opacity:.8;">Tokat → <span id="rota-sehir">SAMSUN</span> · Varış 11:00</span></div>
+        <div class="durak durak-3">
+        <div><b>YOLDA</b><br><span style="font-size:.78rem;opacity:.8;">Tokat → <span id="rota-sehir">SAMSUN</span> · Varış <span id="rota-varis">11:00</span></span></div>
         <span class="durum">Bekliyor</span>
       </div>
       <div class="durak durak-4">
-        <div><b>DAĞITIMDA</b><br><span style="font-size:.78rem;opacity:.8;"><span id="rota-sehir2">SAMSUN</span> içinde · 30 mağaza · 11:00–17:00</span></div>
+        <div><b>DAĞITIMDA</b><br><span style="font-size:.78rem;opacity:.8;"><span id="rota-sehir2">SAMSUN</span> içinde · 30 mağaza · <span id="rota-aralik">11:00–17:00</span></span></div>
         <span class="durum">Bekliyor</span>
       </div>
       <div class="durak durak-5">
-        <div><b>DÖNÜŞ</b><br><span style="font-size:.78rem;opacity:.8;"><span id="rota-sehir3">SAMSUN</span> → Tokat · 17:00</span></div>
+        <div><b>DÖNÜŞ</b><br><span style="font-size:.78rem;opacity:.8;"><span id="rota-sehir3">SAMSUN</span> → Tokat · <span id="rota-donus">17:00</span></span></div>
         <span class="durum">Bekliyor</span>
       </div>
     </div>
@@ -1508,11 +1508,23 @@
   var haftalikRota = ['', 'Samsun', 'Amasya', 'Çorum', 'Sivas', 'Yozgat', ''];
   var ilKoor = { Samsun: { x: 333, y: 57 }, Amasya: { x: 318, y: 97 }, Çorum: { x: 291, y: 103 }, Sivas: { x: 355, y: 153 }, Kayseri: { x: 307, y: 218 }, Yozgat: { x: 286, y: 149 } };
   var merkez = { x: 340, y: 117 };
+  var ilKm = { Samsun: 150, Amasya: 90, Çorum: 190, Sivas: 95, Yozgat: 160, Kayseri: 220 };
+  var ortalamaHiz = 45;
+  function varisSaati(sehir) {
+    return 8 + (ilKm[sehir] || 150) / ortalamaHiz;
+  }
+  function saatYaz(x) {
+    var dk = Math.round(x * 60);
+    var s = Math.floor(dk / 60), d = dk % 60;
+    return ('0' + s).slice(-2) + ':' + ('0' + d).slice(-2);
+  }
   function canliDurum(t, sehir) {
+    var varis = varisSaati(sehir);
+    var donus = varis + 6;
     if (t < 7.5) return { tip: 'hazirlik', ilerleme: 0, tamam: 0, yolda: 'Depo yükleme saat 07:30’da başlayacak' };
     if (t < 8) return { tip: 'yukleme', ilerleme: 0, tamam: 0, yolda: 'Depoda yükleme yapılıyor' };
-    if (t < 11) return { tip: 'yolda', ilerleme: (t - 8) / 3 * 0.3, tamam: 0, yolda: 'Tokat → ' + sehir };
-    if (t < 17) return { tip: 'teslimat', ilerleme: 0.3 + (t - 11) / 6 * 0.7, tamam: Math.min(30, Math.round(30 * (t - 11) / 6)), yolda: sehir + ' içinde mağaza teslimatı' };
+    if (t < varis) return { tip: 'yolda', ilerleme: (t - 8) / (varis - 8) * 0.3, tamam: 0, yolda: 'Tokat → ' + sehir + ' · ' + ilKm[sehir] + ' km' };
+    if (t < donus) return { tip: 'teslimat', ilerleme: 0.3 + (t - varis) / 6 * 0.7, tamam: Math.min(30, Math.round(30 * (t - varis) / 6)), yolda: sehir + ' içinde mağaza teslimatı' };
     return { tip: 'tamam', ilerleme: 1, tamam: 30, yolda: 'Tüm teslimatlar tamamlandı' };
   }
   function canliGuncelle() {
@@ -1542,6 +1554,10 @@
     document.getElementById('rota-sehir').textContent = haftaIci ? sehir : '—';
     document.getElementById('rota-sehir2').textContent = haftaIci ? sehir : '—';
     document.getElementById('rota-sehir3').textContent = haftaIci ? sehir : '—';
+    document.getElementById('rota-varis').textContent = haftaIci ? saatYaz(varisSaati(sehir)) : '—';
+    document.getElementById('rota-aralik').textContent = haftaIci ? saatYaz(varisSaati(sehir)) + '–' + saatYaz(varisSaati(sehir) + 6) : '—';
+    document.getElementById('rota-donus').textContent = haftaIci ? saatYaz(varisSaati(sehir) + 6) : '—';
+    document.getElementById('op-varis-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir)) : '—';
     document.getElementById('canli-cikis').innerHTML = haftaIci
       ? 'Tokat Merkez — DEPO YÜKLEME 07:30<br>Tokat Merkez — ÇIKIŞ 08:00' : '—';
 
@@ -1561,7 +1577,7 @@
         durumlar[2] = { aktif: false, txt: '✔ Varıldı', cls: 'ok' };
         durumlar[3] = { aktif: false, txt: '✔ 30/30 Teslim Edildi', cls: 'ok' };
         durumlar[4] = { aktif: false, txt: '✔ TAMAMLANDI', cls: 'ok' };
-        bilgi = { tamam: '30 / 30 mağaza', yolda: d.yolda, varis: '11:00' };
+        bilgi = { tamam: '30 / 30 mağaza', yolda: d.yolda, varis: saatYaz(varisSaati(sehir)) };
       } else {
         var hazirlikta = d.tip === 'hazirlik' || d.tip === 'yukleme';
         etiket.textContent = 'CANLI';
@@ -1571,7 +1587,7 @@
         durumlar[2] = { aktif: d.tip === 'yolda', txt: d.tip === 'yolda' ? 'Yolda' : (d.tip === 'teslimat' ? '✔ Varıldı' : 'Bekliyor'), cls: d.tip === 'yolda' ? 'yolda' : (d.tip === 'teslimat' ? 'ok' : '') };
         durumlar[3] = { aktif: d.tip === 'teslimat', txt: d.tip === 'teslimat' ? 'Dağıtımda · ' + d.tamam + '/30' : 'Bekliyor', cls: d.tip === 'teslimat' ? 'yolda' : '' };
         durumlar[4] = { aktif: false, txt: 'Bekliyor', cls: '' };
-        bilgi = { tamam: d.tamam + ' / 30 mağaza', yolda: d.yolda, varis: '11:00 (tahmini)' };
+        bilgi = { tamam: d.tamam + ' / 30 mağaza', yolda: d.yolda, varis: saatYaz(varisSaati(sehir)) + ' (tahmini)' };
       }
     }
 
@@ -1593,9 +1609,9 @@
     if (haftaIci && d && ilKoor[sehir]) {
       var hf = ilKoor[sehir];
       var hF = 0;
-      if (d.tip === 'yolda') hF = Math.min(1, (t - 8) / 3);
+      if (d.tip === 'yolda') hF = Math.min(1, (t - 8) / (varisSaati(sehir) - 8));
       else if (d.tip === 'teslimat') hF = 1;
-      else if (d.tip === 'tamam') hF = Math.max(0, 1 - Math.min(1, (t - 17) / 3));
+      else if (d.tip === 'tamam') hF = Math.max(0, 1 - Math.min(1, (t - varisSaati(sehir) - 6) / 3));
       heroArac.setAttribute('x', (merkez.x + (hf.x - merkez.x) * hF) - 32);
       heroArac.setAttribute('y', (merkez.y + (hf.y - merkez.y) * hF) - 26);
       heroArac.style.display = '';
