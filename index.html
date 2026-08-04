@@ -1558,18 +1558,17 @@
   var ortalamaHiz = 85;
   var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
   var firebaseTamam = -1;
-  var firebaseGun = '';
   function firebaseOku() {
     var simdi = new Date();
     var tarih = simdi.getFullYear() + '-' + ('0' + (simdi.getMonth() + 1)).slice(-2) + '-' + ('0' + simdi.getDate()).slice(-2);
     var sehirAd = haftalikRota[simdi.getDay()];
     if (!sehirAd) { firebaseTamam = -1; return; }
-    if (firebaseGun === tarih + sehirAd && firebaseTamam >= 0) return;
     fetch(FIREBASE_URL + '/gunluk/' + tarih + '/' + sehirAd + '.json')
       .then(function (r) { return r.json(); })
       .then(function (v) {
-        firebaseGun = tarih + sehirAd;
         firebaseTamam = v ? Object.keys(v).length : 0;
+        canliGuncelle();
+        opPanelGuncelle();
       })
       .catch(function () { firebaseTamam = -1; });
   }
