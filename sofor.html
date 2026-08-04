@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOKTA TEDARİK — Şoför Paneli</title>
+<style>
+  :root { --turuncu:#f77f00; --turuncu-koyu:#d96b00; --mavi:#0e1b2c; --yesil:#1faa4c; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Tahoma,Arial,sans-serif; background:#f4f7fb; color:#33465c; }
+  .ust { background:linear-gradient(135deg,#0e1b2c,#1b2f4a); color:#fff; padding:18px 16px; text-align:center; position:sticky; top:0; z-index:5; box-shadow:0 4px 18px rgba(14,27,44,.25); }
+  .ust h1 { font-size:1.05rem; letter-spacing:2px; }
+  .ust .alt { font-size:.78rem; opacity:.85; margin-top:4px; }
+  .ust .sehir { color:#ffb347; font-weight:800; font-size:1.05rem; }
+  .ozet { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#fff; border-bottom:1px solid #e3eaf2; position:sticky; top:78px; z-index:4; }
+  .ozet b { color:var(--turuncu-koyu); font-size:1.25rem; }
+  .ozet span { font-size:.78rem; color:#6b7f94; }
+  .liste { padding:12px; display:grid; gap:10px; }
+  .magaza { background:#fff; border-radius:14px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid #e3eaf2; box-shadow:0 2px 8px rgba(14,27,44,.05); }
+  .magaza .ad { font-weight:700; font-size:.92rem; }
+  .magaza .saat { font-size:.75rem; color:#6b7f94; margin-top:2px; }
+  .btn { border:none; border-radius:999px; padding:11px 18px; font-weight:800; font-size:.84rem; cursor:pointer; transition:.2s; }
+  .btn.teslim { background:linear-gradient(135deg,#f77f00,#d96b00); color:#fff; box-shadow:0 4px 12px rgba(247,127,0,.35); }
+  .btn.teslim:active { transform:scale(.94); }
+  .btn.tamam { background:#e8f5ec; color:var(--yesil); }
+  .giris { max-width:340px; margin:80px auto; background:#fff; border-radius:18px; padding:28px 22px; text-align:center; box-shadow:0 12px 30px rgba(14,27,44,.1); }
+  .giris h2 { color:var(--mavi); font-size:1.1rem; letter-spacing:1px; }
+  .giris p { font-size:.8rem; color:#6b7f94; margin-top:6px; }
+  .giris input { width:100%; padding:13px; font-size:1.15rem; letter-spacing:8px; text-align:center; border:2px solid #e3eaf2; border-radius:12px; margin:16px 0 8px; outline:none; }
+  .giris input:focus { border-color:var(--turuncu); }
+  .giris .btn { width:100%; }
+  .hata { color:#d64545; font-size:.8rem; height:20px; }
+  .bos { text-align:center; color:#6b7f94; padding:40px 16px; }
+  .cikis { position:absolute; right:12px; top:12px; background:none; border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:8px; padding:6px 10px; font-size:.72rem; cursor:pointer; }
+  .baglanti { font-size:.7rem; color:#9fb0c3; padding:4px 16px 12px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="ust" id="baslik-kap">
+  <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
+  <h1>NOKTA TEDARİK · ŞOFÖR PANELİ</h1>
+  <div class="alt" id="baslik-alt">Bugünkü şehir: <span class="sehir" id="sehir-ad">—</span></div>
+</div>
+
+<div class="giris" id="giris-kap">
+  <h2>ŞOFÖR GİRİŞİ</h2>
+  <p>Telefona şifreyi girin</p>
+  <input type="password" id="pin" inputmode="numeric" maxlength="4" placeholder="••••">
+  <div class="hata" id="hata"> </div>
+  <button class="btn teslim" id="giris-btn">GİRİŞ YAP</button>
+</div>
+
+<div style="display:none;" id="panel">
+  <div class="ozet">
+    <div><span>Bugünkü teslimat</span><br><b id="ozet-sayi">0 / 30</b></div>
+    <div style="text-align:right;"><span>Teslim edilen</span><br><b id="ozet-tamam">0</b></div>
+  </div>
+  <div class="liste" id="liste"></div>
+  <div class="baglanti" id="baglanti">Bağlantı kuruluyor...</div>
+</div>
+
+<script>
+  var PIN = '2468';
+  var FIREBASE_URL = 'https://__FIREBASE_URL__.default-rtdb.firebaseio.com';
+  var HAFTA = ['', 'Samsun', 'Amasya', 'Çorum', 'Sivas', 'Yozgat', ''];
+  var MAGAZA_SAYISI = 30;
+
+  function bugunkuSehir() { return HAFTA[new Date().getDay()]; }
+  function tarihYaz(d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function yol(sehir) {
+    return FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '.json';
+  }
+
+  var girisKap = document.getElementById('giris-kap');
+  var panel = document.getElementById('panel');
+  var liste = document.getElementById('liste');
+  var pinEl = document.getElementById('pin');
+  var hata = document.getElementById('hata');
+  var sehirEl = document.getElementById('sehir-ad');
+  var baglanti = document.getElementById('baglanti');
+  var cikisBtn = document.getElementById('cikis-btn');
+
+  var sehir = bugunkuSehir();
+  sehirEl.textContent = sehir || 'Hafta sonu';
+  document.getElementById('baslik-alt').style.display = sehir ? '' : 'none';
+
+  function girisYap() {
+    if (pinEl.value.trim() === PIN) {
+      localStorage.setItem('sofor-pin', 'ok');
+      hata.textContent = '';
+      girisKap.style.display = 'none';
+      panel.style.display = '';
+      cikisBtn.style.display = '';
+      baslat();
+    } else {
+      hata.textContent = 'Yanlış şifre';
+      pinEl.value = '';
+      pinEl.focus();
+    }
+  }
+  document.getElementById('giris-btn').addEventListener('click', girisYap);
+  pinEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') girisYap(); });
+  cikisBtn.addEventListener('click', function () {
+    localStorage.removeItem('sofor-pin');
+    panel.style.display = 'none';
+    cikisBtn.style.display = 'none';
+    girisKap.style.display = '';
+  });
+
+  var durumlar = {};
+  function listeCiz() {
+    var html = '';
+    for (var i = 1; i <= MAGAZA_SAYISI; i++) {
+      var d = durumlar[i] || null;
+      html += '<div class="magaza">' +
+        '<div><div class="ad">Mağaza ' + i + '</div>' +
+        '<div class="saat">' + (d ? 'Teslim: ' + d.saat : 'Bekliyor') + '</div></div>' +
+        (d
+          ? '<button class="btn tamam">✓ Teslim Edildi</button>'
+          : '<button class="btn teslim" data-no="' + i + '">Teslim Edildi</button>') +
+        '</div>';
+    }
+    liste.innerHTML = html;
+    var toplam = 0;
+    for (var k in durumlar) toplam++;
+    document.getElementById('ozet-sayi').textContent = toplam + ' / ' + MAGAZA_SAYISI;
+    document.getElementById('ozet-tamam').textContent = toplam;
+  }
+
+  liste.addEventListener('click', function (e) {
+    var btn = e.target.closest('.btn.teslim');
+    if (!btn) return;
+    var no = btn.getAttribute('data-no');
+    var adres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no + '.json';
+    fetch(adres, {
+      method: 'PUT',
+      body: JSON.stringify({ saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) })
+    }).then(function () {
+      durumlar[no] = { saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) };
+      listeCiz();
+    }).catch(function () {
+      baglanti.textContent = 'Bağlantı hatası — Firebase adresi kurulmadı';
+    });
+  });
+
+  function yukle() {
+    if (!sehir) { baglanti.textContent = 'Bugün dağıtım yok (hafta sonu)'; return; }
+    fetch(yol(sehir)).then(function (r) { return r.json(); }).then(function (d) {
+      if (d) {
+        durumlar = {};
+        for (var anahtar in d) {
+          if (d[anahtar] && d[anahtar].saat) durumlar[anahtar] = d[anahtar];
+        }
+      } else {
+        durumlar = {};
+      }
+      listeCiz();
+      baglanti.textContent = 'Çevrimiçi — canlı senkronize';
+    }).catch(function () {
+      baglanti.textContent = 'Firebase adresi kurulmadı — yöneticiye bildirin';
+    });
+  }
+
+  function baslat() {
+    yukle();
+    setInterval(yukle, 4000);
+  }
+
+  if (localStorage.getItem('sofor-pin') === 'ok') {
+    girisKap.style.display = 'none';
+    panel.style.display = '';
+    cikisBtn.style.display = '';
+    baslat();
+  }
+</script>
+</body>
+</html>

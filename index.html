@@ -1484,16 +1484,16 @@
     opSatir('op-teslim', d2 && d2.tip === 'teslimat');
     opSatir('op-sehir', d2 && d2.tip === 'teslimat');
     opSatir('op-donus', d2 && d2.tip === 'tamam');
-    document.getElementById('op-sayi').textContent = d2 ? d2.tamam + ' / 30' : '—';
+    document.getElementById('op-sayi').textContent = d2 ? gosterTamam(d2.tamam) + ' / 30' : '—';
     document.getElementById('op-sehir-ad').textContent = sehir2 ? sehir2 : '—';
     var yuzde = 0;
     if (d2) {
       if (d2.tip === 'tamam') yuzde = 100;
-      else if (d2.tip === 'teslimat') yuzde = Math.round(d2.tamam / 30 * 100);
+      else if (d2.tip === 'teslimat') yuzde = Math.round(gosterTamam(d2.tamam) / 30 * 100);
     }
     document.getElementById('ops-yuzde').textContent = '%' + yuzde;
     document.getElementById('ops-bar').style.width = yuzde + '%';
-    document.getElementById('ops-teslim2').textContent = d2 ? d2.tamam : '0';
+    document.getElementById('ops-teslim2').textContent = d2 ? gosterTamam(d2.tamam) : '0';
     document.getElementById('ops-aktif').textContent = sehir2 ? sehir2 : '—';
     document.getElementById('ops-ara').textContent = sehir2 ? '1' : '0';
   }
@@ -1556,6 +1556,26 @@
   var merkez = { x: 350, y: 140 };
   var ilKm = { Samsun: 150, Amasya: 90, Çorum: 180, Sivas: 95, Yozgat: 160, Kayseri: 220 };
   var ortalamaHiz = 85;
+  var FIREBASE_URL = 'https://__FIREBASE_URL__.default-rtdb.firebaseio.com';
+  var firebaseTamam = -1;
+  var firebaseGun = '';
+  function firebaseOku() {
+    var simdi = new Date();
+    var tarih = simdi.getFullYear() + '-' + ('0' + (simdi.getMonth() + 1)).slice(-2) + '-' + ('0' + simdi.getDate()).slice(-2);
+    var sehirAd = haftalikRota[simdi.getDay()];
+    if (!sehirAd) { firebaseTamam = -1; return; }
+    if (firebaseGun === tarih + sehirAd && firebaseTamam >= 0) return;
+    fetch(FIREBASE_URL + '/gunluk/' + tarih + '/' + sehirAd + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (v) {
+        firebaseGun = tarih + sehirAd;
+        firebaseTamam = v ? Object.keys(v).length : 0;
+      })
+      .catch(function () { firebaseTamam = -1; });
+  }
+  function gosterTamam(sayi) {
+    return firebaseTamam > 0 ? Math.min(30, firebaseTamam) : sayi;
+  }
   function varisSaati(sehir) {
     return 8 + (ilKm[sehir] || 150) / ortalamaHiz;
   }
@@ -1632,9 +1652,9 @@
         durumlar[0] = { aktif: d.tip === 'yukleme', txt: hazirlikta ? (d.tip === 'yukleme' ? 'Yükleme' : 'Hazırlıkta') : '✔ Tamam', cls: hazirlikta ? '' : 'ok' };
         durumlar[1] = { aktif: false, txt: d.tip === 'yukleme' ? 'Bekliyor' : '✔ Çıkış', cls: d.tip === 'yukleme' ? '' : 'ok' };
         durumlar[2] = { aktif: d.tip === 'yolda', txt: d.tip === 'yolda' ? 'Yolda' : (d.tip === 'teslimat' ? '✔ Varıldı' : 'Bekliyor'), cls: d.tip === 'yolda' ? 'yolda' : (d.tip === 'teslimat' ? 'ok' : '') };
-        durumlar[3] = { aktif: d.tip === 'teslimat', txt: d.tip === 'teslimat' ? 'Dağıtımda · ' + d.tamam + '/30' : 'Bekliyor', cls: d.tip === 'teslimat' ? 'yolda' : '' };
+        durumlar[3] = { aktif: d.tip === 'teslimat', txt: d.tip === 'teslimat' ? 'Dağıtımda · ' + gosterTamam(d.tamam) + '/30' : 'Bekliyor', cls: d.tip === 'teslimat' ? 'yolda' : '' };
         durumlar[4] = { aktif: false, txt: 'Bekliyor', cls: '' };
-        bilgi = { tamam: d.tamam + ' / 30 mağaza', yolda: d.yolda, varis: saatYaz(varisSaati(sehir)) + ' (tahmini)' };
+        bilgi = { tamam: gosterTamam(d.tamam) + ' / 30 mağaza', yolda: d.yolda, varis: saatYaz(varisSaati(sehir)) + ' (tahmini)' };
       }
     }
 
@@ -1663,7 +1683,7 @@
       heroArac.setAttribute('y', (merkez.y + (hf.y - merkez.y) * hF) - 26);
       heroArac.style.display = '';
       if (heroHat) heroHat.classList.add('hat-aktif');
-      heroDurum.textContent = d.tip === 'hazirlik' ? 'Hazırlıkta' : d.tip === 'yukleme' ? 'Yükleme' : d.tip === 'yolda' ? 'Yolda' : d.tip === 'teslimat' ? 'Dağıtımda · ' + d.tamam + '/30' : 'Gün Tamamlandı';
+      heroDurum.textContent = d.tip === 'hazirlik' ? 'Hazırlıkta' : d.tip === 'yukleme' ? 'Yükleme' : d.tip === 'yolda' ? 'Yolda' : d.tip === 'teslimat' ? 'Dağıtımda · ' + gosterTamam(d.tamam) + '/30' : 'Gün Tamamlandı';
     } else {
       heroArac.style.display = 'none';
       if (heroHat) heroHat.classList.remove('hat-aktif');
@@ -1674,6 +1694,8 @@
   setInterval(canliGuncelle, 60000);
   opPanelGuncelle();
   setInterval(opPanelGuncelle, 60000);
+  firebaseOku();
+  setInterval(firebaseOku, 30000);
 
   var heroVideo = document.querySelector('.hero-video');
   if (heroVideo && window.innerWidth > 767) {
