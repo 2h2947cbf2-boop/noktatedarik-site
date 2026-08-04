@@ -799,43 +799,43 @@
       <svg viewBox="0 0 640 400" aria-hidden="true">
         <polygon class="harita-zemin" points="30.8,37.5 104.6,56.3 298.5,12.5 332.3,56.3 440,81.3 504.6,50 538.5,100 581.5,293.8 467.7,306.3 329.2,337.5 160,331.3 83.1,325 24.6,143.8"/>
         <g class="hatlar">
-          <line class="hat" data-hedef="Samsun" x1="340" y1="117" x2="333" y2="57"/>
-          <line class="hat" data-hedef="Amasya" x1="340" y1="117" x2="318" y2="97"/>
-          <line class="hat" data-hedef="Çorum" x1="340" y1="117" x2="291" y2="103"/>
-          <line class="hat" data-hedef="Sivas" x1="340" y1="117" x2="355" y2="153"/>
-          <line class="hat" data-hedef="Kayseri" x1="340" y1="117" x2="307" y2="218"/>
-          <line class="hat" data-hedef="Yozgat" x1="340" y1="117" x2="286" y2="149"/>
+          <line class="hat" data-hedef="Samsun" x1="350" y1="140" x2="360" y2="50"/>
+          <line class="hat" data-hedef="Amasya" x1="350" y1="140" x2="240" y2="100"/>
+          <line class="hat" data-hedef="Çorum" x1="350" y1="140" x2="150" y2="150"/>
+          <line class="hat" data-hedef="Sivas" x1="350" y1="140" x2="480" y2="170"/>
+          <line class="hat" data-hedef="Kayseri" x1="350" y1="140" x2="310" y2="300"/>
+          <line class="hat" data-hedef="Yozgat" x1="350" y1="140" x2="215" y2="230"/>
         </g>
         <g class="depo-pin">
-          <circle class="halka" cx="340" cy="117" r="17"/>
-          <circle class="nokta" cx="340" cy="117" r="8"/>
-          <text x="340" y="147" text-anchor="middle">DEPO · TOKAT</text>
+          <circle class="halka" cx="350" cy="140" r="17"/>
+          <circle class="nokta" cx="350" cy="140" r="8"/>
+          <text x="350" y="170" text-anchor="middle">DEPO · TOKAT</text>
         </g>
         <g class="market-dot">
-          <circle class="nokta" cx="333" cy="57" r="5"/>
-          <text x="333" y="75" text-anchor="middle">SAMSUN</text>
+          <circle class="nokta" cx="360" cy="50" r="5"/>
+          <text x="360" y="68" text-anchor="middle">SAMSUN</text>
         </g>
         <g class="market-dot">
-          <circle class="nokta" cx="318" cy="97" r="5"/>
-          <text x="318" y="81" text-anchor="middle">AMASYA</text>
+          <circle class="nokta" cx="240" cy="100" r="5"/>
+          <text x="240" y="118" text-anchor="middle">AMASYA</text>
         </g>
         <g class="market-dot">
-          <circle class="nokta" cx="291" cy="103" r="5"/>
-          <text x="291" y="121" text-anchor="middle">ÇORUM</text>
+          <circle class="nokta" cx="150" cy="150" r="5"/>
+          <text x="150" y="168" text-anchor="middle">ÇORUM</text>
         </g>
         <g class="market-dot">
-          <circle class="nokta" cx="355" cy="153" r="5"/>
-          <text x="355" y="171" text-anchor="middle">SİVAS</text>
+          <circle class="nokta" cx="480" cy="170" r="5"/>
+          <text x="480" y="188" text-anchor="middle">SİVAS</text>
         </g>
         <g class="market-dot">
-          <circle class="nokta" cx="307" cy="218" r="5"/>
-          <text x="307" y="236" text-anchor="middle">KAYSERİ</text>
+          <circle class="nokta" cx="310" cy="300" r="5"/>
+          <text x="310" y="318" text-anchor="middle">KAYSERİ</text>
         </g>
         <g class="market-dot">
-          <circle class="nokta" cx="286" cy="149" r="5"/>
-          <text x="286" y="167" text-anchor="middle">YOZGAT</text>
+          <circle class="nokta" cx="215" cy="230" r="5"/>
+          <text x="215" y="248" text-anchor="middle">YOZGAT</text>
         </g>
-        <image id="hero-arac" href="gorseller/arac-kesik.png" xlink:href="gorseller/arac-kesik.png" x="308" y="87" width="64" height="39"/>
+        <image id="hero-arac" href="gorseller/arac-kesik.png" xlink:href="gorseller/arac-kesik.png" x="318" y="114" width="64" height="39"/>
       </svg>
       <div class="harita-alt">
         <span>Bugünkü rota: <b id="hero-sehir">SAMSUN</b></span>
@@ -1506,8 +1506,8 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modalKapat(); });
 
   var haftalikRota = ['', 'Samsun', 'Amasya', 'Çorum', 'Sivas', 'Yozgat', ''];
-  var ilKoor = { Samsun: { x: 333, y: 57 }, Amasya: { x: 318, y: 97 }, Çorum: { x: 291, y: 103 }, Sivas: { x: 355, y: 153 }, Kayseri: { x: 307, y: 218 }, Yozgat: { x: 286, y: 149 } };
-  var merkez = { x: 340, y: 117 };
+  var ilKoor = { Samsun: { x: 360, y: 50 }, Amasya: { x: 240, y: 100 }, Çorum: { x: 150, y: 150 }, Sivas: { x: 480, y: 170 }, Kayseri: { x: 310, y: 300 }, Yozgat: { x: 215, y: 230 } };
+  var merkez = { x: 350, y: 140 };
   var ilKm = { Samsun: 150, Amasya: 90, Çorum: 180, Sivas: 95, Yozgat: 160, Kayseri: 220 };
   var ortalamaHiz = 85;
   function varisSaati(sehir) {
