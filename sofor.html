@@ -114,10 +114,12 @@
   });
 
   var durumlar = {};
+  function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
   function listeCiz() {
     var gunlukListe = null;
+    var hedef = normalize(sehir);
     for (var l = 0; l < MAGAZALAR.length; l++) {
-      if (MAGAZALAR[l].sehir === sehir.toUpperCase()) { gunlukListe = MAGAZALAR[l].magazalar; break; }
+      if (normalize(MAGAZALAR[l].sehir) === hedef) { gunlukListe = MAGAZALAR[l].magazalar; break; }
     }
     var toplamMagaza = gunlukListe ? gunlukListe.length : MAGAZA_SAYISI;
     var html = '';
