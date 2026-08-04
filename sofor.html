@@ -178,10 +178,15 @@
       }
       html += '<div class="magaza">' +
         '<div><div class="ad">' + ad + '</div>' +
-        '<div class="saat">' + (d ? 'Teslim: ' + d.saat : alt || 'Bekliyor') + '</div></div>' +
+        '<div class="saat">' + (d ? (d.red ? '✗ ' + d.red : 'Teslim: ' + d.saat) : alt || 'Bekliyor') + '</div></div>' +
         (d
-          ? '<button class="btn tamam" data-geri="' + i + '">✓ Teslim Edildi</button>'
-          : '<button class="btn teslim" data-no="' + i + '">Teslim Edildi</button>') +
+          ? (d.red
+            ? '<button class="btn geri-al" data-geri="' + i + '" style="background:#fdecea;color:#c0392b;">✗ ' + d.red + '</button>'
+            : '<button class="btn tamam" data-geri="' + i + '">✓ Teslim Edildi</button>')
+          : '<div style="display:flex;gap:6px;">' +
+            '<button class="btn teslim" data-no="' + i + '">✓</button>' +
+            '<button class="btn red" data-red="' + i + '" style="background:#fdecea;color:#c0392b;padding:11px 10px;">✗</button>' +
+            '</div>') +
         '</div>';
     }
     liste.innerHTML = html;
@@ -219,6 +224,33 @@
         baglanti.textContent = 'Bağlantı hatası';
       });
     }
+    var redBtn = e.target.closest('.btn.red');
+    if (redBtn) {
+      var no3 = redBtn.getAttribute('data-red');
+      var neden = prompt('Teslim edilemedi — nedeni yaz (örn: Kapalı, Adres yok, Ürün reddedildi):', 'Kapalı');
+      if (neden === null || !neden.trim()) return;
+      var adres3 = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no3 + '.json';
+      fetch(adres3, {
+        method: 'PUT',
+        body: JSON.stringify({ saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), red: neden.trim() })
+      }).then(function () {
+        durumlar[no3] = { red: neden.trim() };
+        listeCiz();
+      }).catch(function () {
+        baglanti.textContent = 'Bağlantı hatası';
+      });
+    }
+    var geriRed = e.target.closest('.btn.geri-al');
+    if (geriRed && confirm('Bu mağazanın "teslim edilemedi" işaretini geri al?')) {
+      var no4 = geriRed.getAttribute('data-geri');
+      var adres4 = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no4 + '.json';
+      fetch(adres4, { method: 'DELETE' }).then(function () {
+        delete durumlar[no4];
+        listeCiz();
+      }).catch(function () {
+        baglanti.textContent = 'Bağlantı hatası';
+      });
+    }
   });
 
   function yukle() {
@@ -227,7 +259,7 @@
       if (d) {
         durumlar = {};
         for (var anahtar in d) {
-          if (d[anahtar] && d[anahtar].saat) durumlar[anahtar] = d[anahtar];
+          if (d[anahtar] && (d[anahtar].saat || d[anahtar].red)) durumlar[anahtar] = d[anahtar];
         }
       } else {
         durumlar = {};

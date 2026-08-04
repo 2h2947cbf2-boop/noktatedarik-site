@@ -1566,7 +1566,9 @@
     fetch(FIREBASE_URL + '/gunluk/' + tarih + '/' + sehirAd + '.json')
       .then(function (r) { return r.json(); })
       .then(function (v) {
-        firebaseTamam = v ? Object.keys(v).length : 0;
+        var redler = 0;
+        for (var anahtar in v) { if (v[anahtar] && v[anahtar].red) redler++; }
+        firebaseTamam = v ? Object.keys(v).length - redler : 0;
         canliGuncelle();
         opPanelGuncelle();
       })
