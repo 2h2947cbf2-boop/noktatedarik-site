@@ -23,6 +23,8 @@
   .ozet b { color:var(--turuncu-koyu); font-size:1.25rem; }
   .ozet span { font-size:.78rem; color:#6b7f94; }
   .liste { padding:12px; display:grid; gap:10px; }
+  .il-baslik { background:linear-gradient(135deg,#0e1b2c,#1b2f4a); color:#fff; border-radius:12px; padding:10px 14px; font-weight:800; font-size:.88rem; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center; }
+  .il-baslik span { color:#ffb347; font-size:.75rem; font-weight:700; }
   .magaza { background:#fff; border-radius:14px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid #e3eaf2; box-shadow:0 2px 8px rgba(14,27,44,.05); }
   .magaza .ad { font-weight:700; font-size:.92rem; }
   .magaza .saat { font-size:.75rem; color:#6b7f94; margin-top:2px; }
@@ -70,8 +72,8 @@
 
 <div style="display:none;" id="panel">
   <div class="ozet">
-    <div><span>Bugünkü teslimat</span><br><b id="ozet-sayi">0 / 30</b></div>
-    <div style="text-align:right;"><span>Teslim edilen</span><br><b id="ozet-tamam">0</b></div>
+    <div><span>Bölgedeki mağaza</span><br><b id="ozet-sayi">0</b></div>
+    <div style="text-align:right;"><span>Bugün teslim edilen</span><br><b id="ozet-tamam">0</b></div>
   </div>
   <div style="padding:10px 16px; background:#fff; border-bottom:1px solid #e3eaf2; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
     <div style="font-size:.78rem; color:#6b7f94;">Tahmini dönüş: <b style="color:var(--turuncu-koyu);" id="donus-saat">—</b></div>
@@ -96,7 +98,6 @@
   var PIN = '177544';
   var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
   var HAFTA = ['', 'Samsun', 'Amasya', 'Çorum', 'Sivas', 'Yozgat', ''];
-  var MAGAZA_SAYISI = 30;
   var URUNLER = [
     { ad: 'TARSUS ÇÖREĞİ', sutun: 'D' },
     { ad: 'ÜNYE ÇÖREĞİ', sutun: 'E' },
@@ -114,9 +115,6 @@
   function bugunkuSehir() { return HAFTA[new Date().getDay()]; }
   function tarihYaz(d) {
     return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
-  }
-  function yol(sehir) {
-    return FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '.json';
   }
 
   var girisKap = document.getElementById('giris-kap');
@@ -172,6 +170,7 @@
   });
 
   var durumlar = {};
+  var sonZiyaretler = {};
   var ilKm = { Samsun: 150, Amasya: 90, Çorum: 180, Sivas: 95, Yozgat: 160, Kayseri: 220 };
   var ortalamaHiz = 85;
   function varisSaati(s) {
@@ -196,14 +195,27 @@
   var urunModal = document.getElementById('urun-modal');
   var urunListesi = document.getElementById('urun-listesi');
   var modalMagaza = document.getElementById('modal-magaza');
-  var beklemeNo = null;
-  var beklemeGiris = null;
+  var beklemeKod = null;
 
-  function teslimModalAc(no) {
-    var ad = 'Mağaza ' + no;
-    if (gunlukListeGetir() && gunlukListeGetir()[no - 1]) ad = gunlukListeGetir()[no - 1].m;
-    modalMagaza.textContent = 'Mağaza ' + no + ' — ' + ad;
-    beklemeNo = no;
+  function magazaBul(kod) {
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      for (var m = 0; m < MAGAZALAR[l].magazalar.length; m++) {
+        if (MAGAZALAR[l].magazalar[m].k === kod) {
+          return { il: MAGAZALAR[l].sehir, magaza: MAGAZALAR[l].magazalar[m], sira: m + 1 };
+        }
+      }
+    }
+    return null;
+  }
+
+  function teslimModalAc(kod) {
+    var bul = magazaBul(kod);
+    if (!bul) return;
+    var m = bul.magaza;
+    var ziyaret = sonZiyaretler[kod];
+    modalMagaza.textContent = bul.il + ' · ' + m.m + ' · ' + m.i +
+      (ziyaret ? ' · Son uğrama: ' + ziyaret.tarih : ' · İlk ziyaret');
+    beklemeKod = kod;
     var html = '';
     for (var u = 0; u < URUNLER.length; u++) {
       html += '<div class="urun-satir"><span class="ad">' + URUNLER[u].ad + '</span>' +
@@ -215,16 +227,10 @@
     if (ilkInput) ilkInput.focus();
   }
 
-  function gunlukListeGetir() {
-    var hedef = normalize(sehir);
-    for (var l = 0; l < MAGAZALAR.length; l++) {
-      if (normalize(MAGAZALAR[l].sehir) === hedef) return MAGAZALAR[l].magazalar;
-    }
-    return null;
-  }
-
   function urunKaydet() {
-    if (beklemeNo === null) return;
+    if (beklemeKod === null) return;
+    var bul = magazaBul(beklemeKod);
+    if (!bul) return;
     var girisler = {};
     var inputs = urunListesi.querySelectorAll('input');
     for (var i = 0; i < inputs.length; i++) {
@@ -233,17 +239,20 @@
       girisler[inputs[i].getAttribute('data-sutun')] = deger;
     }
     var saat = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    var magazaAd = 'Mağaza ' + beklemeNo;
-    var gunlukListe2 = gunlukListeGetir();
-    if (gunlukListe2 && gunlukListe2[beklemeNo - 1]) magazaAd = gunlukListe2[beklemeNo - 1].m;
-    var adres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + beklemeNo + '.json';
+    var bugun = tarihYaz(new Date());
+    var magazaAd = bul.magaza.m;
+    var adres = FIREBASE_URL + '/gunluk/' + bugun + '/' + bul.il + '/' + bul.sira + '.json';
     fetch(adres, {
       method: 'PUT',
-      body: JSON.stringify({ saat: saat, urunler: girisler, magaza: magazaAd })
+      body: JSON.stringify({ saat: saat, urunler: girisler, magaza: magazaAd, k: beklemeKod })
     }).then(function () {
-      durumlar[beklemeNo] = { saat: saat, urunler: girisler, magaza: magazaAd };
+      durumlar[beklemeKod] = { saat: saat, urunler: girisler, magaza: magazaAd, k: beklemeKod };
+      var ziyaretAdres = FIREBASE_URL + '/sonziyaret/' + beklemeKod + '.json';
+      return fetch(ziyaretAdres, { method: 'PUT', body: JSON.stringify({ tarih: bugun, saat: saat }) });
+    }).then(function () {
+      sonZiyaretler[beklemeKod] = { tarih: bugun, saat: saat };
       urunModal.style.display = 'none';
-      beklemeNo = null;
+      beklemeKod = null;
       listeCiz();
     }).catch(function () {
       baglanti.textContent = 'Bağlantı hatası — kaydedilemedi';
@@ -253,47 +262,63 @@
   document.getElementById('kaydet-btn').addEventListener('click', urunKaydet);
   document.getElementById('vazgec-btn').addEventListener('click', function () {
     urunModal.style.display = 'none';
-    beklemeNo = null;
+    beklemeKod = null;
   });
   urunModal.addEventListener('click', function (e) {
-    if (e.target === urunModal) { urunModal.style.display = 'none'; beklemeNo = null; }
+    if (e.target === urunModal) { urunModal.style.display = 'none'; beklemeKod = null; }
   });
 
+  function tarihKisa(t) {
+    if (!t) return '';
+    var p = t.split('-');
+    if (p.length !== 3) return t;
+    return p[2] + '.' + p[1] + '.' + p[0];
+  }
+
   function listeCiz() {
-    var gunlukListe = null;
-    var hedef = normalize(sehir);
-    for (var l = 0; l < MAGAZALAR.length; l++) {
-      if (normalize(MAGAZALAR[l].sehir) === hedef) { gunlukListe = MAGAZALAR[l].magazalar; break; }
-    }
-    var toplamMagaza = gunlukListe ? gunlukListe.length : MAGAZA_SAYISI;
     var html = '';
-    for (var i = 1; i <= toplamMagaza; i++) {
-      var d = durumlar[i] || null;
-      var ad = 'Mağaza ' + i;
-      var alt = '';
-      if (gunlukListe && gunlukListe[i - 1]) {
-        ad = gunlukListe[i - 1].m;
-        alt = gunlukListe[i - 1].i;
+    var toplam = 0;
+    var bugunYapilan = 0;
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      var il = MAGAZALAR[l];
+      toplam += il.magazalar.length;
+      html += '<div class="il-baslik">' + il.sehir + '<span>' + il.magazalar.length + ' mağaza</span></div>';
+      for (var i = 0; i < il.magazalar.length; i++) {
+        var m = il.magazalar[i];
+        var d = durumlar[m.k] || null;
+        var ziyaret = sonZiyaretler[m.k] || null;
+        if (d) bugunYapilan++;
+        var alt = (ziyaret ? 'Son uğrama: ' + tarihKisa(ziyaret.tarih) + ' · ' : 'İlk ziyaret · ') + m.i;
+        html += '<div class="magaza">' +
+          '<div><div class="ad">' + m.m + '</div>' +
+          '<div class="saat">' + (d ? (d.red ? '✗ ' + d.red : 'Teslim: ' + d.saat) + ' · ' + alt : alt) + '</div></div>' +
+          (d
+            ? (d.red
+              ? '<button class="btn geri-al" data-geri="' + m.k + '" style="background:#fdecea;color:#c0392b;">✗ ' + d.red + '</button>'
+              : '<button class="btn tamam" data-geri="' + m.k + '">✓ Teslim Edildi</button>')
+            : '<div style="display:flex;gap:6px;">' +
+              '<button class="btn teslim" data-no="' + m.k + '">✓</button>' +
+              '<button class="btn red" data-red="' + m.k + '" style="background:#fdecea;color:#c0392b;padding:11px 10px;">✗</button>' +
+              '</div>') +
+          '</div>';
       }
-      html += '<div class="magaza">' +
-        '<div><div class="ad">' + ad + '</div>' +
-        '<div class="saat">' + (d ? (d.red ? '✗ ' + d.red : 'Teslim: ' + d.saat) : alt || 'Bekliyor') + '</div></div>' +
-        (d
-          ? (d.red
-            ? '<button class="btn geri-al" data-geri="' + i + '" style="background:#fdecea;color:#c0392b;">✗ ' + d.red + '</button>'
-            : '<button class="btn tamam" data-geri="' + i + '">✓ Teslim Edildi</button>')
-          : '<div style="display:flex;gap:6px;">' +
-            '<button class="btn teslim" data-no="' + i + '">✓</button>' +
-            '<button class="btn red" data-red="' + i + '" style="background:#fdecea;color:#c0392b;padding:11px 10px;">✗</button>' +
-            '</div>') +
-        '</div>';
     }
     liste.innerHTML = html;
-    var toplam = 0;
-    for (var k in durumlar) toplam++;
-    document.getElementById('ozet-sayi').textContent = toplam + ' / ' + toplamMagaza;
-    document.getElementById('ozet-tamam').textContent = toplam;
+    document.getElementById('ozet-sayi').textContent = toplam;
+    document.getElementById('ozet-tamam').textContent = bugunYapilan;
     document.getElementById('donus-saat').textContent = sehir ? donusSaati(sehir) : '—';
+  }
+
+  function silKayit(kod, sonraCiz) {
+    var bul = magazaBul(kod);
+    if (!bul) return;
+    var adres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + bul.il + '/' + bul.sira + '.json';
+    fetch(adres, { method: 'DELETE' }).then(function () {
+      delete durumlar[kod];
+      if (sonraCiz) sonraCiz();
+    }).catch(function () {
+      baglanti.textContent = 'Bağlantı hatası';
+    });
   }
 
   liste.addEventListener('click', function (e) {
@@ -304,26 +329,21 @@
     }
     var geriBtn = e.target.closest('.btn.tamam');
     if (geriBtn && confirm('Bu mağazanın teslim işaretini geri al? Sayı düşer.')) {
-      var no2 = geriBtn.getAttribute('data-geri');
-      var adres2 = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no2 + '.json';
-      fetch(adres2, { method: 'DELETE' }).then(function () {
-        delete durumlar[no2];
-        listeCiz();
-      }).catch(function () {
-        baglanti.textContent = 'Bağlantı hatası';
-      });
+      silKayit(geriBtn.getAttribute('data-geri'), listeCiz);
     }
     var redBtn = e.target.closest('.btn.red');
     if (redBtn) {
-      var no3 = redBtn.getAttribute('data-red');
+      var kod3 = redBtn.getAttribute('data-red');
+      var bul3 = magazaBul(kod3);
+      if (!bul3) return;
       var neden = prompt('Teslim edilemedi — nedeni yaz (örn: Kapalı, Adres yok, Ürün reddedildi):', 'Kapalı');
       if (neden === null || !neden.trim()) return;
-      var adres3 = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no3 + '.json';
+      var adres3 = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + bul3.il + '/' + bul3.sira + '.json';
       fetch(adres3, {
         method: 'PUT',
-        body: JSON.stringify({ saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), red: neden.trim() })
+        body: JSON.stringify({ saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), red: neden.trim(), k: kod3 })
       }).then(function () {
-        durumlar[no3] = { red: neden.trim() };
+        durumlar[kod3] = { red: neden.trim(), k: kod3 };
         listeCiz();
       }).catch(function () {
         baglanti.textContent = 'Bağlantı hatası';
@@ -331,38 +351,42 @@
     }
     var geriRed = e.target.closest('.btn.geri-al');
     if (geriRed && confirm('Bu mağazanın "teslim edilemedi" işaretini geri al?')) {
-      var no4 = geriRed.getAttribute('data-geri');
-      var adres4 = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no4 + '.json';
-      fetch(adres4, { method: 'DELETE' }).then(function () {
-        delete durumlar[no4];
-        listeCiz();
-      }).catch(function () {
-        baglanti.textContent = 'Bağlantı hatası';
-      });
+      silKayit(geriRed.getAttribute('data-geri'), listeCiz);
     }
   });
 
   function yukle() {
-    if (!sehir) { baglanti.textContent = 'Bugün dağıtım yok (hafta sonu)'; return; }
-    fetch(yol(sehir)).then(function (r) { return r.json(); }).then(function (d) {
+    fetch(FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '.json').then(function (r) { return r.json(); }).then(function (d) {
+      durumlar = {};
       if (d) {
-        durumlar = {};
-        for (var anahtar in d) {
-          if (d[anahtar] && (d[anahtar].saat || d[anahtar].red)) durumlar[anahtar] = d[anahtar];
+        for (var sehirAd in d) {
+          var sehVeri = d[sehirAd];
+          for (var anahtar in sehVeri) {
+            var kayit = sehVeri[anahtar];
+            if (kayit && (kayit.saat || kayit.red)) {
+              if (kayit.k) durumlar[kayit.k] = kayit;
+              else {
+                var bul = magazaBul(anahtar);
+                if (bul) durumlar[bul.magaza.k] = kayit;
+              }
+            }
+          }
         }
-      } else {
-        durumlar = {};
       }
       listeCiz();
       baglanti.textContent = 'Çevrimiçi — canlı senkronize';
     }).catch(function () {
       baglanti.textContent = 'Firebase adresi kurulmadı — yöneticiye bildirin';
     });
+    fetch(FIREBASE_URL + '/sonziyaret.json').then(function (r) { return r.json(); }).then(function (d) {
+      if (d) sonZiyaretler = d;
+      listeCiz();
+    }).catch(function () { });
   }
 
   function baslat() {
     yukle();
-    setInterval(yukle, 4000);
+    setInterval(yukle, 6000);
   }
 
   var bildirimIsmi = 'NOKTA TEDARİK';
@@ -383,7 +407,6 @@
   }
 
   function hatirlatmaKontrol() {
-    if (!sehir) return;
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     var simdi = new Date();
     var gun = tarihYaz(simdi);
@@ -394,8 +417,8 @@
     var teslimSayi = 0;
     for (var k in durumlar) teslimSayi++;
     if (saat >= 11) {
-      if (teslimSayi < 30) {
-        bildirimGonder((30 - teslimSayi) + ' mağaza henüz işaretlenmedi! Bugünkü teslimatı kontrol et.');
+      if (teslimSayi < 120) {
+        bildirimGonder((120 - teslimSayi) + ' mağaza henüz işaretlenmedi! Bugünkü teslimatı kontrol et.');
         localStorage.setItem('hatir-saat', gun + '-' + saat);
       }
     }

@@ -207,8 +207,8 @@
   .harita-baslik::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--turuncu); animation: nabız 2s infinite; }
   .hero-harita svg { width: 100%; height: auto; display: block; }
   .hero-harita .harita-zemin { fill: rgba(255, 255, 255, .05); stroke: rgba(255, 255, 255, .2); stroke-width: 1.2; }
-  .hero-harita .hat { stroke: rgba(255, 255, 255, .22); stroke-width: 1.6; stroke-dasharray: 5 6; fill: none; }
-  .hero-harita .hat-aktif { stroke: var(--turuncu); stroke-width: 2.4; stroke-dasharray: 9 7; filter: drop-shadow(0 0 6px rgba(247, 127, 0, .7)); animation: hat-akis 1s linear infinite; }
+  .hero-harita .hat { stroke: rgba(255, 255, 255, .22); stroke-width: 2.6; stroke-dasharray: 5 6; fill: none; }
+  .hero-harita .hat-aktif { stroke: var(--turuncu); stroke-width: 3.8; stroke-dasharray: 9 7; filter: drop-shadow(0 0 6px rgba(247, 127, 0, .7)); animation: hat-akis 1s linear infinite; }
   @keyframes hat-akis { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -21; } }
   .depo-pin .nokta { fill: var(--turuncu); stroke: #fff; stroke-width: 2; }
   .depo-pin .halka { fill: none; stroke: rgba(247, 127, 0, .7); stroke-width: 1.4; animation: nabız 2.2s infinite; }
@@ -222,6 +222,12 @@
     font-size: .82rem; color: rgba(255, 255, 255, .85);
   }
   .harita-alt b { color: var(--turuncu-acik); }
+  .ilce-kutu { margin-top: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); font-size: .8rem; color: rgba(255, 255, 255, .85); }
+  .ilce-kutu .bas { font-weight: 800; letter-spacing: 2px; font-size: .7rem; color: var(--turuncu-acik); margin-bottom: 6px; }
+  .ilce-satir { padding: 5px 0; border-bottom: 1px dashed rgba(255, 255, 255, .12); display: flex; justify-content: space-between; gap: 8px; }
+  .ilce-satir:last-child { border-bottom: none; }
+  .ilce-satir b { color: #fff; font-size: .78rem; letter-spacing: .5px; }
+  .ilce-satir span { color: var(--turuncu-acik); font-weight: 700; font-size: .74rem; white-space: nowrap; }
 
   .hero-ic { position: relative; z-index: 3; }
   .rozet {
@@ -379,6 +385,19 @@
   }
   .oper-kutu .sayi { font-family: var(--font-baslik); font-size: 2.5rem; font-weight: 900; color: var(--turuncu-acik); }
   .oper-kutu .etiket { margin-top: 8px; letter-spacing: 3px; font-size: .78rem; color: rgba(255, 255, 255, .75); font-weight: 700; }
+  .bolgeler { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 8px; }
+  .bolge-kart {
+    border-radius: 18px; border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .05); padding: 18px 16px;
+    backdrop-filter: blur(10px); transition: transform .3s, border-color .3s, box-shadow .3s;
+  }
+  .bolge-kart:hover { transform: translateY(-4px); border-color: rgba(247, 127, 0, .55); box-shadow: 0 16px 40px rgba(0, 0, 0, .45), 0 0 30px rgba(247, 127, 0, .15); }
+  .bolge-kart h4 { color: var(--turuncu-acik); font-family: var(--font-baslik); font-size: 1.05rem; letter-spacing: 1.5px; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin-bottom: 10px; }
+  .bolge-kart h4 span { font-family: var(--font-metin); font-size: .68rem; color: rgba(255, 255, 255, .6); font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
+  .bolge-satir { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px dashed rgba(255, 255, 255, .1); font-size: .8rem; color: rgba(255, 255, 255, .85); }
+  .bolge-satir:last-child { border-bottom: none; }
+  .bolge-satir b { font-weight: 700; color: #fff; }
+  .bolge-satir span { color: var(--turuncu-acik); font-size: .74rem; font-weight: 800; white-space: nowrap; }
   .rota-serifit { grid-column: 1 / -1; display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 22px; }
   .rota-serifit .sehir {
     font-weight: 800; letter-spacing: 1px; font-size: .84rem; color: rgba(255, 255, 255, .45);
@@ -392,8 +411,8 @@
   .rota-serifit .ok { color: rgba(255, 255, 255, .22); }
 
   /* ===== BÜYÜK AĞ HARİTASI ===== */
-  .ops-mesh .mesh-yol { stroke: rgba(247, 127, 0, .16); stroke-width: 3; fill: none; }
-  .ops-rota { stroke: rgba(247, 127, 0, .85); stroke-width: 3; fill: none; filter: drop-shadow(0 0 7px rgba(247, 127, 0, .8)); }
+  .ops-mesh .mesh-yol { stroke: rgba(247, 127, 0, .16); stroke-width: 4; fill: none; }
+  .ops-rota { stroke: rgba(247, 127, 0, .85); stroke-width: 4.5; fill: none; filter: drop-shadow(0 0 7px rgba(247, 127, 0, .8)); }
   .ops-sehir .nokta { fill: var(--turuncu); stroke: #fff; stroke-width: 3; filter: drop-shadow(0 0 8px rgba(247, 127, 0, .8)); }
   .ops-sehir .halka { fill: none; stroke: rgba(247, 127, 0, .65); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: halka-pat 2.4s ease-out infinite; }
   @keyframes halka-pat { 0% { transform: scale(.55); opacity: .9; } 100% { transform: scale(1.8); opacity: 0; } }
@@ -844,6 +863,10 @@
         <span>Bugünkü rota: <b id="hero-sehir">SAMSUN</b></span>
         <span id="hero-durum">Yolda</span>
       </div>
+      <div class="ilce-kutu">
+        <div class="bas">BUGÜNKÜ ROTA İLÇELERİ</div>
+        <div id="hero-ilceler"></div>
+      </div>
     </div>
   </div>
   <a class="kaydir-ok" href="#dagitim" aria-label="Aşağı kaydır">
@@ -887,7 +910,7 @@
           <div class="ust"><span>Bugünkü teslimat</span><b id="ops-yuzde">%0</b></div>
           <div class="bar-yol"><div class="bar-dolgu" id="ops-bar"></div></div>
           <div class="canli-kuplar">
-            <div class="canli-kup"><b id="ops-teslim2">0</b><span>TESLİM / 30</span></div>
+            <div class="canli-kup"><b id="ops-teslim2">0</b><span>TESLİM</span></div>
             <div class="canli-kup"><b id="ops-aktif">—</b><span>AKTİF ŞEHİR</span></div>
             <div class="canli-kup"><b id="ops-ara">1</b><span>ARAÇ YOLDA</span></div>
           </div>
@@ -905,7 +928,7 @@
         </div>
         <div class="oper-satir" id="op-teslim">
           <span class="ikon">📦</span>
-          <div class="sol"><b id="op-sayi">18 / 30</b><span>Teslim</span></div>
+          <div class="sol"><b id="op-sayi">0 / 0</b><span>Teslim</span></div>
         </div>
         <div class="oper-satir" id="op-sehir">
           <span class="ikon">📍</span>
@@ -926,6 +949,7 @@
         <div class="oper-kutu"><div class="sayi" data-sayac="100000">0</div><div class="etiket">TESLİMAT</div></div>
         <div class="oper-kutu"><div class="sayi" data-sayac="100">0</div><div class="etiket">% MEMNUNİYET</div></div>
       </div>
+      <div class="bolgeler" id="bolgeler"></div>
       <div class="rota-serifit" id="rota-serifit"></div>
     </div>
   </div>
@@ -934,7 +958,7 @@
 <section class="bolum" id="canli">
   <h2>Canlı Dağıtım Takibi</h2>
   <div class="alt-cizgi"></div>
-  <p class="aciklama">Her gün tek şehirde 30 mağazaya dağıtım — aracımızın anlık durumu.</p>
+  <p class="aciklama">Her gün bölgedeki 5 ile dağıtım — aracımızın anlık durumu.</p>
   <div class="canli-kap gizli">
     <div class="rota">
       <div class="rota-cizgi"></div>
@@ -951,7 +975,7 @@
         <span class="durum">Bekliyor</span>
       </div>
       <div class="durak durak-4">
-        <div><b>DAĞITIMDA</b><br><span style="font-size:.78rem;opacity:.8;"><span id="rota-sehir2">SAMSUN</span> içinde · 30 mağaza · <span id="rota-aralik">11:00–17:00</span></span></div>
+        <div><b>DAĞITIMDA</b><br><span style="font-size:.78rem;opacity:.8;"><span id="rota-sehir2">SAMSUN</span> içinde · <span id="rota-adet">30 mağaza</span> · <span id="rota-aralik">11:00–17:00</span></span></div>
         <span class="durum">Bekliyor</span>
       </div>
       <div class="durak durak-5">
@@ -966,7 +990,7 @@
       <div class="kayit"><span>Bugünkü şehir</span><b id="canli-sehir">—</b></div>
       <div class="kayit"><span>Çıkış noktası</span><b id="canli-cikis">Tokat Merkez — DEPO YÜKLEME 07:30<br>Tokat Merkez — ÇIKIŞ 08:00</b></div>
       <div class="kayit"><span>Tahmini varış</span><b id="canli-varis">11:00</b></div>
-      <div class="kayit"><span>Teslim edilen mağaza</span><b id="canli-tamam">0 / 30 mağaza</b></div>
+      <div class="kayit"><span>Teslim edilen mağaza</span><b id="canli-tamam">0 / 0 mağaza</b></div>
       <div class="kayit"><span>Durum</span><b id="canli-yolda">Depo yükleme yapılıyor</b></div>
     </div>
   </div>
@@ -1160,6 +1184,7 @@
   <div class="footer-alt">© <span id="yil"></span> NOKTA<span>TEDARİK</span> — Tokat Merkez | Tüm hakları saklıdır.</div>
 </footer>
 
+<script src="magazalar.js"></script>
 <script>
   var URUNLER = [
     { ad: 'Bagetta Sac Ekmeği', aciklama: '300 gr — günlük taze üretim', detay: 'Baget formunda, özel fırınlama tekniğiyle üretilen sac ekmeği. Mağaza rafları için idealdir.', foto: 'gorseller/sacekmegi.jpg', ikon: '🥖' },
@@ -1213,6 +1238,50 @@
   function modalKapat() { modalArka.classList.remove('acik'); }
 
   function menuAc() { document.getElementById('menu').classList.toggle('acik'); }
+
+  function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
+  function ilBul(ad) {
+    var hedef = normalize(ad);
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      if (normalize(MAGAZALAR[l].sehir) === hedef) return MAGAZALAR[l];
+    }
+    return null;
+  }
+  function ilceSayilari(ilAd) {
+    var il = ilBul(ilAd);
+    if (!il) return null;
+    var say = {};
+    for (var m = 0; m < il.magazalar.length; m++) {
+      var i = il.magazalar[m].i || 'MERKEZ';
+      say[i] = (say[i] || 0) + 1;
+    }
+    return say;
+  }
+  function ilcelerDoldur() {
+    var kap = document.getElementById('bolgeler');
+    var html = '';
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      var il = MAGAZALAR[l];
+      var say = ilceSayilari(il.sehir) || {};
+      html += '<div class="bolge-kart"><h4>' + il.sehir + '<span>' + il.magazalar.length + ' mağaza</span></h4>';
+      for (var i in say) {
+        html += '<div class="bolge-satir"><b>' + i + '</b><span>' + say[i] + ' mağaza</span></div>';
+      }
+      html += '</div>';
+    }
+    kap.innerHTML = html;
+  }
+  function heroIlcelerDoldur(sehirAd) {
+    var kap = document.getElementById('hero-ilceler');
+    if (!sehirAd) { kap.innerHTML = '<div class="bolge-satir"><b>Hafta sonu — dağıtım yok</b></div>'; return; }
+    var say = ilceSayilari(sehirAd);
+    if (!say) { kap.innerHTML = ''; return; }
+    var html = '';
+    for (var i in say) {
+      html += '<div class="bolge-satir"><b>' + i + '</b><span>' + say[i] + ' mağaza</span></div>';
+    }
+    kap.innerHTML = html;
+  }
 
   var ust = document.getElementById('ust');
   var yukari = document.getElementById('yukari');
@@ -1485,16 +1554,16 @@
     opSatir('op-teslim', d2 && d2.tip === 'teslimat');
     opSatir('op-sehir', d2 && d2.tip === 'teslimat');
     opSatir('op-donus', d2 && d2.tip === 'tamam');
-    document.getElementById('op-sayi').textContent = d2 ? gosterTamam(d2.tamam) + ' / 30' : '—';
+    document.getElementById('op-sayi').textContent = d2 ? gosterTamam(d2.tamam) + ' / ' + magazaSayisi(sehir2) : '—';
     document.getElementById('op-sehir-ad').textContent = sehir2 ? sehir2 : '—';
     var yuzde = 0;
     if (d2) {
       if (d2.tip === 'tamam') yuzde = 100;
-      else if (d2.tip === 'teslimat') yuzde = Math.round(gosterTamam(d2.tamam) / 30 * 100);
+      else if (d2.tip === 'teslimat') yuzde = Math.round(gosterTamam(d2.tamam) / magazaSayisi(sehir2) * 100);
     }
     document.getElementById('ops-yuzde').textContent = '%' + yuzde;
     document.getElementById('ops-bar').style.width = yuzde + '%';
-    document.getElementById('ops-teslim2').textContent = d2 ? gosterTamam(d2.tamam) : '0';
+    document.getElementById('ops-teslim2').textContent = d2 ? gosterTamam(d2.tamam) + ' / ' + magazaSayisi(sehir2) : '0 / ' + (sehir2 ? magazaSayisi(sehir2) : '30');
     document.getElementById('ops-aktif').textContent = sehir2 ? sehir2 : '—';
     document.getElementById('ops-ara').textContent = sehir2 ? '1' : '0';
   }
@@ -1575,8 +1644,12 @@
       })
       .catch(function () { firebaseTamam = -1; });
   }
+  function magazaSayisi(sehirAd) {
+    var il = ilBul(sehirAd);
+    return il ? il.magazalar.length : 30;
+  }
   function gosterTamam(sayi) {
-    return firebaseTamam >= 0 ? Math.min(30, firebaseTamam) : sayi;
+    return firebaseTamam >= 0 ? firebaseTamam : sayi;
   }
   function varisSaati(sehir) {
     return 8 + (ilKm[sehir] || 150) / ortalamaHiz;
@@ -1588,12 +1661,13 @@
   }
   function canliDurum(t, sehir) {
     var varis = varisSaati(sehir);
-    var donus = varis + 30 * 15 / 60;
+    var adet = magazaSayisi(sehir);
+    var donus = varis + adet * 15 / 60;
     if (t < 7.5) return { tip: 'hazirlik', ilerleme: 0, tamam: 0, yolda: 'Depo yükleme saat 07:30’da başlayacak' };
     if (t < 8) return { tip: 'yukleme', ilerleme: 0, tamam: 0, yolda: 'Depoda yükleme yapılıyor' };
     if (t < varis) return { tip: 'yolda', ilerleme: (t - 8) / (varis - 8) * 0.3, tamam: 0, yolda: 'Tokat → ' + sehir + ' · ' + ilKm[sehir] + ' km' };
-    if (t < donus) return { tip: 'teslimat', ilerleme: 0.3 + (t - varis) / 7.5 * 0.7, tamam: Math.min(30, Math.floor((t - varis) * 60 / 15)), yolda: sehir + ' içinde mağaza teslimatı' };
-    return { tip: 'tamam', ilerleme: 1, tamam: 30, yolda: 'Tüm teslimatlar tamamlandı' };
+    if (t < donus) return { tip: 'teslimat', ilerleme: 0.3 + (t - varis) / (adet * 0.25) * 0.7, tamam: Math.min(adet, Math.floor((t - varis) * 60 / 15)), yolda: sehir + ' içinde mağaza teslimatı' };
+    return { tip: 'tamam', ilerleme: 1, tamam: adet, yolda: 'Tüm teslimatlar tamamlandı' };
   }
   function canliGuncelle() {
     var simdi = new Date();
@@ -1622,11 +1696,12 @@
     document.getElementById('rota-sehir').textContent = haftaIci ? sehir : '—';
     document.getElementById('rota-sehir2').textContent = haftaIci ? sehir : '—';
     document.getElementById('rota-sehir3').textContent = haftaIci ? sehir : '—';
+    document.getElementById('rota-adet').textContent = haftaIci ? magazaSayisi(sehir) + ' mağaza' : '—';
     document.getElementById('rota-varis').textContent = haftaIci ? saatYaz(varisSaati(sehir)) : '—';
-    document.getElementById('rota-aralik').textContent = haftaIci ? saatYaz(varisSaati(sehir)) + '–' + saatYaz(varisSaati(sehir) + 7.5) : '—';
-    document.getElementById('rota-donus').textContent = haftaIci ? saatYaz(varisSaati(sehir) + 7.5) : '—';
+    document.getElementById('rota-aralik').textContent = haftaIci ? saatYaz(varisSaati(sehir)) + '–' + saatYaz(varisSaati(sehir) + magazaSayisi(sehir) * 0.25) : '—';
+    document.getElementById('rota-donus').textContent = haftaIci ? saatYaz(varisSaati(sehir) + magazaSayisi(sehir) * 0.25) : '—';
     document.getElementById('op-varis-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir)) : '—';
-    document.getElementById('op-donus-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir) + 7.5) : '—';
+    document.getElementById('op-donus-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir) + magazaSayisi(sehir) * 0.25) : '—';
     document.getElementById('canli-cikis').innerHTML = haftaIci
       ? 'Tokat Merkez — DEPO YÜKLEME 07:30<br>Tokat Merkez — ÇIKIŞ 08:00' : '—';
 
@@ -1644,9 +1719,9 @@
         durumlar[0] = { aktif: false, txt: '✔ Tamam', cls: 'ok' };
         durumlar[1] = { aktif: false, txt: '✔ Çıkış', cls: 'ok' };
         durumlar[2] = { aktif: false, txt: '✔ Varıldı', cls: 'ok' };
-        durumlar[3] = { aktif: false, txt: '✔ 30/30 Teslim Edildi', cls: 'ok' };
+        durumlar[3] = { aktif: false, txt: '✔ ' + magazaSayisi(sehir) + '/' + magazaSayisi(sehir) + ' Teslim Edildi', cls: 'ok' };
         durumlar[4] = { aktif: false, txt: '✔ TAMAMLANDI', cls: 'ok' };
-        bilgi = { tamam: '30 / 30 mağaza', yolda: d.yolda, varis: saatYaz(varisSaati(sehir)) };
+        bilgi = { tamam: magazaSayisi(sehir) + ' / ' + magazaSayisi(sehir) + ' mağaza', yolda: d.yolda, varis: saatYaz(varisSaati(sehir)) };
       } else {
         var hazirlikta = d.tip === 'hazirlik' || d.tip === 'yukleme';
         etiket.textContent = 'CANLI';
@@ -1654,9 +1729,9 @@
         durumlar[0] = { aktif: d.tip === 'yukleme', txt: hazirlikta ? (d.tip === 'yukleme' ? 'Yükleme' : 'Hazırlıkta') : '✔ Tamam', cls: hazirlikta ? '' : 'ok' };
         durumlar[1] = { aktif: false, txt: d.tip === 'yukleme' ? 'Bekliyor' : '✔ Çıkış', cls: d.tip === 'yukleme' ? '' : 'ok' };
         durumlar[2] = { aktif: d.tip === 'yolda', txt: d.tip === 'yolda' ? 'Yolda' : (d.tip === 'teslimat' ? '✔ Varıldı' : 'Bekliyor'), cls: d.tip === 'yolda' ? 'yolda' : (d.tip === 'teslimat' ? 'ok' : '') };
-        durumlar[3] = { aktif: d.tip === 'teslimat', txt: d.tip === 'teslimat' ? 'Dağıtımda · ' + gosterTamam(d.tamam) + '/30' : 'Bekliyor', cls: d.tip === 'teslimat' ? 'yolda' : '' };
+        durumlar[3] = { aktif: d.tip === 'teslimat', txt: d.tip === 'teslimat' ? 'Dağıtımda · ' + gosterTamam(d.tamam) + '/' + magazaSayisi(sehir) : 'Bekliyor', cls: d.tip === 'teslimat' ? 'yolda' : '' };
         durumlar[4] = { aktif: false, txt: 'Bekliyor', cls: '' };
-        bilgi = { tamam: gosterTamam(d.tamam) + ' / 30 mağaza', yolda: d.yolda, varis: saatYaz(varisSaati(sehir)) + ' (tahmini)' };
+        bilgi = { tamam: gosterTamam(d.tamam) + ' / ' + magazaSayisi(sehir) + ' mağaza', yolda: d.yolda, varis: saatYaz(varisSaati(sehir)) + ' (tahmini)' };
       }
     }
 
@@ -1675,6 +1750,7 @@
     var heroDurum = document.getElementById('hero-durum');
     var heroHat = document.querySelector('.hero-harita .hat[data-hedef="' + sehir + '"]');
     document.getElementById('hero-sehir').textContent = haftaIci ? sehir : '—';
+    heroIlcelerDoldur(haftaIci ? sehir : null);
     if (haftaIci && d && ilKoor[sehir]) {
       var hf = ilKoor[sehir];
       var hF = 0;
@@ -1685,7 +1761,7 @@
       heroArac.setAttribute('y', (merkez.y + (hf.y - merkez.y) * hF) - 26);
       heroArac.style.display = '';
       if (heroHat) heroHat.classList.add('hat-aktif');
-      heroDurum.textContent = d.tip === 'hazirlik' ? 'Hazırlıkta' : d.tip === 'yukleme' ? 'Yükleme' : d.tip === 'yolda' ? 'Yolda' : d.tip === 'teslimat' ? 'Dağıtımda · ' + gosterTamam(d.tamam) + '/30' : 'Gün Tamamlandı';
+      heroDurum.textContent = d.tip === 'hazirlik' ? 'Hazırlıkta' : d.tip === 'yukleme' ? 'Yükleme' : d.tip === 'yolda' ? 'Yolda' : d.tip === 'teslimat' ? 'Dağıtımda · ' + gosterTamam(d.tamam) + '/' + magazaSayisi(sehir) : 'Gün Tamamlandı';
     } else {
       heroArac.style.display = 'none';
       if (heroHat) heroHat.classList.remove('hat-aktif');
@@ -1696,6 +1772,7 @@
   setInterval(canliGuncelle, 60000);
   opPanelGuncelle();
   setInterval(opPanelGuncelle, 60000);
+  ilcelerDoldur();
   firebaseOku();
   setInterval(firebaseOku, 30000);
 
