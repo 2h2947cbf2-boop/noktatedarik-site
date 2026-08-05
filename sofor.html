@@ -207,7 +207,7 @@
     var html = '';
     for (var u = 0; u < URUNLER.length; u++) {
       html += '<div class="urun-satir"><span class="ad">' + URUNLER[u].ad + '</span>' +
-        '<input type="number" inputmode="numeric" min="0" value="0" data-sutun="' + URUNLER[u].sutun + '"></div>';
+        '<input type="number" inputmode="numeric" min="0" placeholder="0" data-sutun="' + URUNLER[u].sutun + '"></div>';
     }
     urunListesi.innerHTML = html;
     urunModal.style.display = 'flex';
