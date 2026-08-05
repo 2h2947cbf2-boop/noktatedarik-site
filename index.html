@@ -1669,7 +1669,15 @@
   }
   function magazaSayisi(sehirAd) {
     var il = ilBul(sehirAd);
-    return il ? il.magazalar.length : 30;
+    if (!il) return 30;
+    if (aktifSecim && aktifSecim.ilce) {
+      var s = 0;
+      for (var m = 0; m < il.magazalar.length; m++) {
+        if (il.magazalar[m].i === aktifSecim.ilce) s++;
+      }
+      return s;
+    }
+    return il.magazalar.length;
   }
   function gosterTamam(sayi) {
     return firebaseTamam >= 0 ? firebaseTamam : sayi;
