@@ -96,7 +96,7 @@
     <div style="text-align:right;"><span>Bugün teslim edilen</span><br><b id="ozet-tamam">0</b></div>
   </div>
   <div style="padding:10px 16px; background:#fff; border-bottom:1px solid #e3eaf2; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-    <div style="font-size:.78rem; color:#6b7f94;">Tahmini dönüş: <b style="color:var(--turuncu-koyu);" id="donus-saat">—</b></div>
+    <button class="btn teslim" id="donus-btn" style="text-decoration:none; padding:9px 14px; font-size:.78rem; flex:1;">🔄 DÖNÜŞE GEÇ</button>
     <a class="btn teslim" id="depo-btn" href="tel:+905375966856" style="text-decoration:none; padding:9px 14px; font-size:.78rem;">📞 BÜYÜK PATRONU ARA</a>
   </div>
   <div class="liste" id="liste"></div>
@@ -187,6 +187,9 @@
     ilceDoldur();
     listeCiz();
     secimKaydet();
+    donusYapildi = false;
+    donusBtn.textContent = '🔄 DÖNÜŞE GEÇ';
+    donusBtn.style.background = '';
   });
   ilceSecEl.addEventListener('change', function () {
     seciliIlce = ilceSecEl.value;
@@ -254,14 +257,16 @@
     if (dakika === 60) { tamsayi++; dakika = 0; }
     return ('0' + tamsayi).slice(-2) + ':' + ('0' + dakika).slice(-2);
   }
-  function donusSaati(s) {
-    var km = ilKm[s] || 100;
-    var saatDegeri = 8 + km / ortalamaHiz + 30 * 15 / 60;
-    var tamsayi = Math.floor(saatDegeri);
-    var dakika = Math.round((saatDegeri - tamsayi) * 60);
-    if (dakika === 60) { tamsayi++; dakika = 0; }
-    if (tamsayi >= 24) tamsayi -= 24;
-    return ('0' + tamsayi).slice(-2) + ':' + ('0' + dakika).slice(-2);
+  function donusVarisSaati() {
+    if (!seciliIl) return null;
+    var km = ilKm[seciliIl] || 100;
+    var sureSaat = km / ortalamaHiz;
+    var simdi = new Date();
+    var varis = new Date(simdi.getTime() + sureSaat * 3600 * 1000);
+    return {
+      varis: varis,
+      saat: ('0' + varis.getHours()).slice(-2) + ':' + ('0' + varis.getMinutes()).slice(-2)
+    };
   }
   function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
 
@@ -405,7 +410,6 @@
     liste.innerHTML = html;
     document.getElementById('ozet-sayi').textContent = toplam;
     document.getElementById('ozet-tamam').textContent = bugunYapilan;
-    document.getElementById('donus-saat').textContent = seciliIl ? donusSaati(seciliIl) : '—';
   }
 
   function secimKaydet() {
@@ -460,6 +464,25 @@
     if (geriRed && confirm('Bu mağazanın "teslim edilemedi" işaretini geri al?')) {
       silKayit(geriRed.getAttribute('data-geri'), listeCiz);
     }
+  });
+
+  var donusBtn = document.getElementById('donus-btn');
+  var donusYapildi = false;
+  donusBtn.addEventListener('click', function () {
+    if (!seciliIl) {
+      baglanti.textContent = 'Önce il seçin';
+      return;
+    }
+    var hesap = donusVarisSaati();
+    if (!hesap) return;
+    donusYapildi = true;
+    donusBtn.textContent = '🔄 Dönüşte — Tahmini varış: ' + hesap.saat;
+    donusBtn.style.background = 'var(--turuncu-koyu, #f39c12)';
+    baglanti.textContent = 'Dönüş başladı — depoya tahmini varış ' + hesap.saat;
+    fetch(FIREBASE_URL + '/donus/' + tarihYaz(new Date()) + '.json', {
+      method: 'PUT',
+      body: JSON.stringify({ il: seciliIl, ilce: seciliIlce, baslangic: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), varisTahmini: hesap.saat, ts: Date.now() })
+    }).catch(function () {});
   });
 
   function yukle() {

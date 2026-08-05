@@ -1550,7 +1550,12 @@
     opSatir('op-yol', d2 && d2.tip === 'yolda');
     opSatir('op-teslim', d2 && d2.tip === 'teslimat');
     opSatir('op-sehir', d2 && d2.tip === 'teslimat');
-    opSatir('op-donus', d2 && d2.tip === 'tamam');
+    opSatir('op-donus', !!(aktifDonus && aktifDonus.il));
+    if (aktifDonus && aktifDonus.varisTahmini) {
+      document.getElementById('op-donus-saat').textContent = aktifDonus.varisTahmini;
+      var opDonusAlt = document.getElementById('op-donus-saat').parentElement.querySelector('span');
+      opDonusAlt.textContent = aktifDonus.ilce ? 'Şoför dönüşte · ' + aktifDonus.ilce : 'Şoför dönüşte';
+    }
     document.getElementById('op-sayi').textContent = d2 ? gosterTamam(d2.tamam) + ' / ' + magazaSayisi(sehir2) : '—';
     var opSehirAd = document.getElementById('op-sehir-ad');
     var opSehirAlt = opSehirAd.parentElement.querySelector('span');
@@ -1634,6 +1639,7 @@
   var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
   var firebaseTamam = -1;
   var aktifSecim = null;
+  var aktifDonus = null;
   var aktifSehir = '';
   function duzIlAdi(ad) {
     var n = normalize(ad);
@@ -1661,8 +1667,13 @@
             var sayi = 0;
             for (var anahtar in v) { if (v[anahtar] && !v[anahtar].red) sayi++; }
             firebaseTamam = v ? sayi : 0;
-            canliGuncelle();
-            opPanelGuncelle();
+            return fetch(FIREBASE_URL + '/donus/' + tarih + '.json')
+              .then(function (r) { return r.json(); })
+              .then(function (dn) {
+                aktifDonus = dn;
+                canliGuncelle();
+                opPanelGuncelle();
+              });
           });
       })
       .catch(function () { firebaseTamam = -1; canliGuncelle(); opPanelGuncelle(); });
@@ -1730,9 +1741,9 @@
     document.getElementById('rota-adet').textContent = haftaIci ? magazaSayisi(sehir) + ' mağaza' : '—';
     document.getElementById('rota-varis').textContent = haftaIci ? saatYaz(varisSaati(sehir)) : '—';
     document.getElementById('rota-aralik').textContent = haftaIci ? saatYaz(varisSaati(sehir)) + '–' + saatYaz(varisSaati(sehir) + magazaSayisi(sehir) * 0.25) : '—';
-    document.getElementById('rota-donus').textContent = haftaIci ? saatYaz(varisSaati(sehir) + magazaSayisi(sehir) * 0.25) : '—';
+    document.getElementById('rota-donus').textContent = aktifDonus && aktifDonus.varisTahmini ? aktifDonus.varisTahmini : (haftaIci ? saatYaz(varisSaati(sehir) + magazaSayisi(sehir) * 0.25) : '—');
     document.getElementById('op-varis-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir)) : '—';
-    document.getElementById('op-donus-saat').textContent = haftaIci ? saatYaz(varisSaati(sehir) + magazaSayisi(sehir) * 0.25) : '—';
+    document.getElementById('op-donus-saat').textContent = aktifDonus && aktifDonus.varisTahmini ? aktifDonus.varisTahmini : (haftaIci ? saatYaz(varisSaati(sehir) + magazaSayisi(sehir) * 0.25) : '—');
     document.getElementById('canli-cikis').innerHTML = haftaIci
       ? 'Tokat Merkez — DEPO YÜKLEME 07:30<br>Tokat Merkez — ÇIKIŞ 08:00' : '—';
 
