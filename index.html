@@ -873,10 +873,6 @@
         <span>Bugünkü rota: <b id="hero-sehir">SAMSUN</b></span>
         <span id="hero-durum">Yolda</span>
       </div>
-      <div class="ilce-kutu">
-        <div class="bas">BUGÜNKÜ ROTA İLÇELERİ</div>
-        <div id="hero-ilceler"></div>
-      </div>
     </div>
   </div>
   <a class="kaydir-ok" href="#dagitim" aria-label="Aşağı kaydır">
@@ -1282,15 +1278,6 @@
     kap.innerHTML = html;
   }
   function heroIlcelerDoldur(sehirAd) {
-    var kap = document.getElementById('hero-ilceler');
-    if (!sehirAd) { kap.innerHTML = '<div class="bolge-satir"><b>Hafta sonu — dağıtım yok</b></div>'; return; }
-    var say = ilceSayilari(sehirAd);
-    if (!say) { kap.innerHTML = ''; return; }
-    var html = '';
-    for (var i in say) {
-      html += '<div class="bolge-satir"><b>' + i + '</b><span>' + say[i] + ' mağaza</span></div>';
-    }
-    kap.innerHTML = html;
   }
 
   var ust = document.getElementById('ust');
