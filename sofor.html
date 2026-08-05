@@ -111,6 +111,7 @@
       cikisBtn.style.display = '';
       baslat();
       bildirimIzinIste();
+      konumBaslat();
     } else {
       hata.textContent = 'Yanlış şifre';
       pinEl.value = '';
@@ -124,6 +125,7 @@
     panel.style.display = 'none';
     cikisBtn.style.display = 'none';
     girisKap.style.display = '';
+    konumDurdur();
   });
 
   document.getElementById('test-btn').addEventListener('click', function () {
@@ -312,6 +314,43 @@
     }
   }
 
+  var konumAktif = false;
+  var konumTimer = null;
+  var sonKonum = null;
+  function konumBaslat() {
+    if (konumAktif) return;
+    if (!('geolocation' in navigator)) {
+      baglanti.textContent = 'Bu cihaz konum desteklemiyor';
+      return;
+    }
+    konumAktif = true;
+    konumGonder();
+    konumTimer = setInterval(konumGonder, 15000);
+  }
+  function konumDurdur() {
+    konumAktif = false;
+    if (konumTimer) { clearInterval(konumTimer); konumTimer = null; }
+  }
+  function konumGonder() {
+    if (!konumAktif) return;
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      sonKonum = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      var veri = {
+        lat: sonKonum.lat,
+        lng: sonKonum.lng,
+        saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+        sehir: sehir || ''
+      };
+      fetch(FIREBASE_URL + '/konum/guncel.json', { method: 'PUT', body: JSON.stringify(veri) }).catch(function () { });
+      fetch(FIREBASE_URL + '/konum/gecmis/' + tarihYaz(new Date()) + '/' + Date.now() + '.json', {
+        method: 'PUT',
+        body: JSON.stringify({ lat: sonKonum.lat, lng: sonKonum.lng })
+      }).catch(function () { });
+    }, function () {
+      baglanti.textContent = 'Konum izni yok — takip kapalı. Ayarlardan konumu açın';
+    }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 5000 });
+  }
+
   function pwaKur() {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(function () { });
@@ -325,6 +364,7 @@
     panel.style.display = '';
     cikisBtn.style.display = '';
     baslat();
+    konumBaslat();
   }
 </script>
 </body>
