@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e1b2c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Yönetici Paneli">
+<title>NOKTA TEDARİK — Yönetici Paneli</title>
+<link rel="apple-touch-icon" href="NoktaTedarik-Logo.jpg">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root { --turuncu:#f77f00; --turuncu-koyu:#d96b00; --mavi:#0e1b2c; --yesil:#1faa4c; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Tahoma,Arial,sans-serif; background:#f4f7fb; color:#33465c; }
+  .ust { background:linear-gradient(135deg,#0e1b2c,#1b2f4a); color:#fff; padding:18px 16px; text-align:center; position:sticky; top:0; z-index:5; box-shadow:0 4px 18px rgba(14,27,44,.25); }
+  .ust h1 { font-size:1.05rem; letter-spacing:2px; }
+  .ust .alt { font-size:.78rem; opacity:.85; margin-top:4px; }
+  .ust .sehir { color:#ffb347; font-weight:800; font-size:1.05rem; }
+  .cikis { position:absolute; right:12px; top:12px; background:none; border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:8px; padding:6px 10px; font-size:.72rem; cursor:pointer; }
+  .giris { max-width:340px; margin:80px auto; background:#fff; border-radius:18px; padding:28px 22px; text-align:center; box-shadow:0 12px 30px rgba(14,27,44,.1); }
+  .giris h2 { color:var(--mavi); font-size:1.1rem; letter-spacing:1px; }
+  .giris p { font-size:.8rem; color:#6b7f94; margin-top:6px; }
+  .giris input { width:100%; padding:13px; font-size:1.15rem; letter-spacing:8px; text-align:center; border:2px solid #e3eaf2; border-radius:12px; margin:16px 0 8px; outline:none; }
+  .giris input:focus { border-color:var(--turuncu); }
+  .btn { border:none; border-radius:999px; padding:11px 18px; font-weight:800; font-size:.84rem; cursor:pointer; transition:.2s; color:#fff; background:linear-gradient(135deg,#f77f00,#d96b00); box-shadow:0 4px 12px rgba(247,127,0,.35); }
+  .giris .btn { width:100%; }
+  .hata { color:#d64545; font-size:.8rem; height:20px; }
+  .ozet { display:flex; justify-content:space-around; align-items:center; padding:12px 8px; background:#fff; border-bottom:1px solid #e3eaf2; position:sticky; top:86px; z-index:4; flex-wrap:wrap; gap:8px; }
+  .ozet .kup { text-align:center; min-width:70px; }
+  .ozet b { color:var(--turuncu-koyu); font-size:1.2rem; display:block; }
+  .ozet .kup.yesil b { color:var(--yesil); }
+  .ozet .kup.kirmizi b { color:#c0392b; }
+  .ozet span { font-size:.65rem; color:#6b7f94; letter-spacing:.5px; }
+  #harita { height:340px; width:100%; }
+  .konum-bar { padding:8px 16px; background:#fff; border-bottom:1px solid #e3eaf2; font-size:.8rem; color:#6b7f94; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .canli-nokta { width:9px; height:9px; border-radius:50%; background:#f77f00; display:inline-block; margin-right:6px; animation:yanip 1.2s infinite; }
+  @keyframes yanip { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+  .liste { padding:12px; display:grid; gap:10px; }
+  .magaza { background:#fff; border-radius:14px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid #e3eaf2; box-shadow:0 2px 8px rgba(14,27,44,.05); }
+  .magaza .ad { font-weight:700; font-size:.92rem; }
+  .magaza .saat { font-size:.75rem; color:#6b7f94; margin-top:2px; }
+  .rozet { border-radius:999px; padding:6px 14px; font-weight:800; font-size:.78rem; white-space:nowrap; }
+  .rozet.bekliyor { background:#eef2f7; color:#6b7f94; }
+  .rozet.teslim { background:#e8f5ec; color:var(--yesil); }
+  .rozet.red { background:#fdecea; color:#c0392b; }
+  .bos { text-align:center; color:#6b7f94; padding:30px 16px; }
+  .marker-arac { background:#f77f00; border:3px solid #fff; border-radius:50% 50% 50% 0; width:22px; height:22px; transform:rotate(-45deg); box-shadow:0 4px 10px rgba(247,127,0,.5); }
+</style>
+</head>
+<body>
+
+<div class="ust">
+  <button class="cikis" id="cikis-btn" style="display:none;">Çıkış</button>
+  <h1>NOKTA TEDARİK · YÖNETİCİ PANELİ</h1>
+  <div class="alt">Tarih: <span class="sehir" id="tarih-ad">—</span> · Bugün: <span class="sehir" id="sehir-ad">—</span></div>
+</div>
+
+<div class="giris" id="giris-kap">
+  <h2>YÖNETİCİ GİRİŞİ</h2>
+  <p>Yönetici şifresini girin</p>
+  <input type="password" id="pin" inputmode="numeric" maxlength="6" placeholder="••••••">
+  <div class="hata" id="hata"> </div>
+  <button class="btn" id="giris-btn">GİRİŞ YAP</button>
+</div>
+
+<div style="display:none;" id="panel">
+  <div class="ozet">
+    <div class="kup"><b id="ozet-tamam">0</b><span>TESLİM</span></div>
+    <div class="kup yesil"><b id="ozet-toplam">0 / 30</b><span>MAĞAZA</span></div>
+    <div class="kup kirmizi"><b id="ozet-red">0</b><span>RED</span></div>
+    <div class="kup"><b id="ozet-durum">Bekleniyor</b><span>ARAÇ DURUMU</span></div>
+  </div>
+  <div id="harita"></div>
+  <div class="konum-bar">
+    <span><span class="canli-nokta"></span><span id="konum-metin">Araç konumu bekleniyor...</span></span>
+    <a class="btn" id="ara-btn" href="tel:+905375966856" style="text-decoration:none; padding:8px 14px; font-size:.75rem;">📞 ŞOFÖRÜ ARA</a>
+  </div>
+  <div style="padding:12px 16px; background:#fff; border-bottom:1px solid #e3eaf2;">
+    <div class="ad" style="font-weight:800; color:var(--mavi); font-size:.9rem; letter-spacing:.5px;">BUGÜNKÜ MAĞAZALAR</div>
+  </div>
+  <div class="liste" id="liste"></div>
+  <div style="padding:0 16px 14px; text-align:center; font-size:.7rem; color:#9fb0c3;">Canlı takip 5 saniyede bir yenilenir · Konum şoför paneli açıkken gelir</div>
+</div>
+
+<script>
+  var PIN = '441177';
+  var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
+  var HAFTA = ['', 'Samsun', 'Amasya', 'Çorum', 'Sivas', 'Yozgat', ''];
+  var MAGAZA_SAYISI = 30;
+</script>
+<script src="magazalar.js"></script>
+<script>
+  function bugunkuSehir() { return HAFTA[new Date().getDay()]; }
+  function tarihYaz(d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
+
+  var girisKap = document.getElementById('giris-kap');
+  var panel = document.getElementById('panel');
+  var liste = document.getElementById('liste');
+  var pinEl = document.getElementById('pin');
+  var hata = document.getElementById('hata');
+  var sehirEl = document.getElementById('sehir-ad');
+  var tarihEl = document.getElementById('tarih-ad');
+
+  var sehir = bugunkuSehir();
+  sehirEl.textContent = sehir || 'Hafta sonu';
+  tarihEl.textContent = tarihYaz(new Date());
+
+  var durumlar = {};
+  var gunlukListe = null;
+  if (sehir) {
+    var hedef = normalize(sehir);
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      if (normalize(MAGAZALAR[l].sehir) === hedef) { gunlukListe = MAGAZALAR[l].magazalar; break; }
+    }
+  }
+  var toplamMagaza = gunlukListe ? gunlukListe.length : MAGAZA_SAYISI;
+
+  function girisYap() {
+    if (pinEl.value.trim() === PIN) {
+      localStorage.setItem('yonetici-pin', 'ok');
+      hata.textContent = '';
+      girisKap.style.display = 'none';
+      panel.style.display = '';
+      cikisBtn.style.display = '';
+      baslat();
+    } else {
+      hata.textContent = 'Yanlış şifre';
+      pinEl.value = '';
+      pinEl.focus();
+    }
+  }
+  document.getElementById('giris-btn').addEventListener('click', girisYap);
+  pinEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') girisYap(); });
+  var cikisBtn = document.getElementById('cikis-btn');
+  cikisBtn.addEventListener('click', function () {
+    localStorage.removeItem('yonetici-pin');
+    panel.style.display = 'none';
+    cikisBtn.style.display = 'none';
+    girisKap.style.display = '';
+  });
+
+  var harita = L.map('harita').setView([40.5, 36.5], 7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(harita);
+  var aracMarker = null;
+  var rotaCizgi = null;
+  var sonKonum = null;
+  var aracIkon = L.divIcon({ className: '', html: '<div class="marker-arac"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
+
+  function mesafe(a, b) {
+    if (!a || !b) return null;
+    var R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
+    var la1 = a.lat * Math.PI / 180, la2 = b.lat * Math.PI / 180;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
+  function yukleKonum() {
+    fetch(FIREBASE_URL + '/konum/guncel.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.lat || !d.lng) {
+          document.getElementById('konum-metin').textContent = 'Araç henüz konum göndermiyor';
+          document.getElementById('ozet-durum').textContent = 'Bekleniyor';
+          return;
+        }
+        var nokta = [d.lat, d.lng];
+        var m = mesafe(sonKonum, { lat: d.lat, lng: d.lng });
+        sonKonum = { lat: d.lat, lng: d.lng };
+        document.getElementById('konum-metin').textContent = 'Son konum: ' + (d.saat || '—') + ' · ' + (d.sehir || '');
+        document.getElementById('ozet-durum').textContent = (m === null || m > 2) ? 'Yolda' : 'Duruyor';
+        if (!aracMarker) {
+          aracMarker = L.marker(nokta, { icon: aracIkon }).addTo(harita).bindPopup('<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—'));
+          harita.setView(nokta, 13);
+        } else {
+          aracMarker.setLatLng(nokta);
+          if (m !== null && m > 0.01) harita.panTo(nokta);
+        }
+      }).catch(function () {
+        document.getElementById('konum-metin').textContent = 'Bağlantı hatası';
+      });
+  }
+
+  function yukleRota() {
+    fetch(FIREBASE_URL + '/konum/gecmis/' + tarihYaz(new Date()) + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d) return;
+        var puanlar = [];
+        var anahtarlar = Object.keys(d).sort();
+        for (var i = 0; i < anahtarlar.length; i++) {
+          var p = d[anahtarlar[i]];
+          if (p && p.lat && p.lng) puanlar.push([p.lat, p.lng]);
+        }
+        if (puanlar.length < 2) return;
+        if (rotaCizgi) harita.removeLayer(rotaCizgi);
+        rotaCizgi = L.polyline(puanlar, { color: '#f77f00', weight: 4, opacity: .7 }).addTo(harita);
+      }).catch(function () { });
+  }
+
+  function yukle() {
+    if (!sehir) { liste.innerHTML = '<div class="bos">Bugün dağıtım yok (hafta sonu)</div>'; return; }
+    fetch(FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        durumlar = {};
+        if (d) {
+          for (var anahtar in d) {
+            if (d[anahtar] && (d[anahtar].saat || d[anahtar].red)) durumlar[anahtar] = d[anahtar];
+          }
+        }
+        ciz();
+      }).catch(function () { });
+  }
+
+  function ciz() {
+    var html = '';
+    for (var i = 1; i <= toplamMagaza; i++) {
+      var d = durumlar[i] || null;
+      var ad = 'Mağaza ' + i;
+      var alt = '';
+      if (gunlukListe && gunlukListe[i - 1]) {
+        ad = gunlukListe[i - 1].m;
+        alt = gunlukListe[i - 1].i;
+      }
+      var rozet;
+      var altSaat;
+      if (d) {
+        if (d.red) { rozet = '<span class="rozet red">✗ ' + d.red + '</span>'; altSaat = d.saat || ''; }
+        else { rozet = '<span class="rozet teslim">✓ Teslim</span>'; altSaat = 'Teslim: ' + d.saat; }
+      } else {
+        rozet = '<span class="rozet bekliyor">Bekliyor</span>';
+        altSaat = alt || '';
+      }
+      html += '<div class="magaza">' +
+        '<div><div class="ad">' + ad + '</div><div class="saat">' + (altSaat || '') + '</div></div>' +
+        rozet +
+        '</div>';
+    }
+    liste.innerHTML = html;
+    var tamam = 0, red = 0;
+    for (var k in durumlar) {
+      if (durumlar[k].red) red++; else tamam++;
+    }
+    document.getElementById('ozet-tamam').textContent = tamam;
+    document.getElementById('ozet-toplam').textContent = tamam + ' / ' + toplamMagaza;
+    document.getElementById('ozet-red').textContent = red;
+  }
+
+  function baslat() {
+    yukle();
+    yukleKonum();
+    yukleRota();
+    setInterval(function () { yukle(); yukleKonum(); yukleRota(); }, 5000);
+  }
+
+  if (localStorage.getItem('yonetici-pin') === 'ok') {
+    girisKap.style.display = 'none';
+    panel.style.display = '';
+    cikisBtn.style.display = '';
+    document.getElementById('pin').value = PIN;
+    baslat();
+  }
+</script>
+</body>
+</html>
