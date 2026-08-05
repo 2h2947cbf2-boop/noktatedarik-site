@@ -1544,7 +1544,7 @@
   }
   function opPanelGuncelle() {
     var gun2 = new Date().getDay();
-    var sehir2 = haftalikRota[gun2];
+    var sehir2 = aktifSehir || haftalikRota[gun2];
     var d2 = sehir2 ? canliDurum(new Date().getHours() + new Date().getMinutes() / 60, sehir2) : null;
     opSatir('op-yukleme', d2 && (d2.tip === 'hazirlik' || d2.tip === 'yukleme'));
     opSatir('op-yol', d2 && d2.tip === 'yolda');
@@ -1552,7 +1552,15 @@
     opSatir('op-sehir', d2 && d2.tip === 'teslimat');
     opSatir('op-donus', d2 && d2.tip === 'tamam');
     document.getElementById('op-sayi').textContent = d2 ? gosterTamam(d2.tamam) + ' / ' + magazaSayisi(sehir2) : '—';
-    document.getElementById('op-sehir-ad').textContent = sehir2 ? sehir2 : '—';
+    var opSehirAd = document.getElementById('op-sehir-ad');
+    var opSehirAlt = opSehirAd.parentElement.querySelector('span');
+    if (aktifSecim) {
+      opSehirAd.textContent = aktifSehir || '—';
+      opSehirAlt.textContent = aktifSecim.ilce ? 'Şoför seçimi · ' + aktifSecim.ilce : 'Şoförün seçtiği şehir';
+    } else {
+      opSehirAd.textContent = sehir2 ? sehir2 : '—';
+      opSehirAlt.textContent = 'Bugünkü şehir';
+    }
     var yuzde = 0;
     if (d2) {
       if (d2.tip === 'tamam') yuzde = 100;
@@ -1625,21 +1633,39 @@
   var ortalamaHiz = 85;
   var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
   var firebaseTamam = -1;
+  var aktifSecim = null;
+  var aktifSehir = '';
+  function duzIlAdi(ad) {
+    var n = normalize(ad);
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      if (normalize(MAGAZALAR[l].sehir) === n) {
+        var s = MAGAZALAR[l].sehir.toLowerCase();
+        return s.charAt(0).toUpperCase() + s.slice(1);
+      }
+    }
+    return ad;
+  }
   function firebaseOku() {
     var simdi = new Date();
     var tarih = simdi.getFullYear() + '-' + ('0' + (simdi.getMonth() + 1)).slice(-2) + '-' + ('0' + simdi.getDate()).slice(-2);
-    var sehirAd = haftalikRota[simdi.getDay()];
-    if (!sehirAd) { firebaseTamam = -1; return; }
-    fetch(FIREBASE_URL + '/gunluk/' + tarih + '/' + sehirAd + '.json')
+    fetch(FIREBASE_URL + '/secim/' + tarih + '.json')
       .then(function (r) { return r.json(); })
-      .then(function (v) {
-        var sayi = 0;
-        for (var anahtar in v) { if (v[anahtar] && !v[anahtar].red) sayi++; }
-        firebaseTamam = v ? sayi : 0;
-        canliGuncelle();
-        opPanelGuncelle();
+      .then(function (s) {
+        aktifSecim = s && s.il ? s : null;
+        var sehirAd = aktifSecim ? aktifSecim.il : haftalikRota[simdi.getDay()];
+        aktifSehir = aktifSecim ? duzIlAdi(aktifSecim.il) : haftalikRota[simdi.getDay()];
+        if (!sehirAd) { firebaseTamam = -1; canliGuncelle(); opPanelGuncelle(); return; }
+        return fetch(FIREBASE_URL + '/gunluk/' + tarih + '/' + sehirAd + '.json')
+          .then(function (r) { return r.json(); })
+          .then(function (v) {
+            var sayi = 0;
+            for (var anahtar in v) { if (v[anahtar] && !v[anahtar].red) sayi++; }
+            firebaseTamam = v ? sayi : 0;
+            canliGuncelle();
+            opPanelGuncelle();
+          });
       })
-      .catch(function () { firebaseTamam = -1; });
+      .catch(function () { firebaseTamam = -1; canliGuncelle(); opPanelGuncelle(); });
   }
   function magazaSayisi(sehirAd) {
     var il = ilBul(sehirAd);
@@ -1671,7 +1697,7 @@
     var gun = simdi.getDay();
     var t = simdi.getHours() + simdi.getMinutes() / 60;
     var gunAd = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-    var sehir = haftalikRota[gun];
+    var sehir = aktifSehir || haftalikRota[gun];
     var haftaIci = !!sehir;
     var ilerleme = 0;
     var durumlar = [

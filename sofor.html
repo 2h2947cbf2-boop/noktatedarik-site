@@ -186,10 +186,12 @@
     document.getElementById('baslik-alt').style.display = seciliIl ? '' : 'none';
     ilceDoldur();
     listeCiz();
+    secimKaydet();
   });
   ilceSecEl.addEventListener('change', function () {
     seciliIlce = ilceSecEl.value;
     listeCiz();
+    secimKaydet();
   });
   document.querySelector('.tip-kap').addEventListener('click', function (e) {
     var b = e.target.closest('button');
@@ -404,6 +406,14 @@
     document.getElementById('ozet-sayi').textContent = toplam;
     document.getElementById('ozet-tamam').textContent = bugunYapilan;
     document.getElementById('donus-saat').textContent = seciliIl ? donusSaati(seciliIl) : '—';
+  }
+
+  function secimKaydet() {
+    var adres = FIREBASE_URL + '/secim/' + tarihYaz(new Date()) + '.json';
+    fetch(adres, {
+      method: 'PUT',
+      body: JSON.stringify({ il: seciliIl, ilce: seciliIlce })
+    }).catch(function () {});
   }
 
   function silKayit(kod, sonraCiz) {
