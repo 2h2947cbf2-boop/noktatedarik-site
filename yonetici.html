@@ -235,6 +235,17 @@
       }).catch(function () { });
   }
 
+  var URUNLER = [
+    { ad: 'TARSUS ÇÖREĞİ', sutun: 'D' },
+    { ad: 'ÜNYE ÇÖREĞİ', sutun: 'E' },
+    { ad: 'KANDİL SİMİTİ', sutun: 'F' },
+    { ad: 'KONYA GEVREĞİ', sutun: 'G' },
+    { ad: 'SUSAMLI ÇÖREK', sutun: 'H' },
+    { ad: 'LAVAŞ', sutun: 'I' },
+    { ad: 'GALETA', sutun: 'J' },
+    { ad: 'TAM BUĞDAY LAVAŞ', sutun: 'K' }
+  ];
+
   function ciz() {
     var html = '';
     for (var i = 1; i <= toplamMagaza; i++) {
@@ -249,7 +260,18 @@
       var altSaat;
       if (d) {
         if (d.red) { rozet = '<span class="rozet red">✗ ' + d.red + '</span>'; altSaat = d.saat || ''; }
-        else { rozet = '<span class="rozet teslim">✓ Teslim</span>'; altSaat = 'Teslim: ' + d.saat; }
+        else {
+          rozet = '<span class="rozet teslim">✓ Teslim</span>';
+          altSaat = 'Teslim: ' + d.saat;
+          if (d.urunler) {
+            var urunYazi = [];
+            for (var u = 0; u < URUNLER.length; u++) {
+              var deger = d.urunler[URUNLER[u].sutun];
+              if (deger && deger > 0) urunYazi.push(URUNLER[u].ad + ': ' + deger);
+            }
+            if (urunYazi.length) altSaat += ' — ' + urunYazi.join(', ');
+          }
+        }
       } else {
         rozet = '<span class="rozet bekliyor">Bekliyor</span>';
         altSaat = alt || '';

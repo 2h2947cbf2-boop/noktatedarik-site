@@ -40,6 +40,16 @@
   .bos { text-align:center; color:#6b7f94; padding:40px 16px; }
   .cikis { position:absolute; right:12px; top:12px; background:none; border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:8px; padding:6px 10px; font-size:.72rem; cursor:pointer; }
   .baglanti { font-size:.7rem; color:#9fb0c3; padding:4px 16px 12px; text-align:center; }
+  .modal-kap { position:fixed; inset:0; background:rgba(14,27,44,.55); display:none; align-items:center; justify-content:center; z-index:50; padding:14px; }
+  .modal { background:#fff; border-radius:18px; padding:20px 16px; width:100%; max-width:380px; box-shadow:0 18px 50px rgba(14,27,44,.35); max-height:92vh; overflow-y:auto; }
+  .modal h3 { color:var(--mavi); font-size:1rem; letter-spacing:.5px; margin-bottom:4px; }
+  .modal .alt { font-size:.75rem; color:#6b7f94; margin-bottom:12px; }
+  .urun-satir { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 4px; border-bottom:1px solid #eef2f7; }
+  .urun-satir .ad { font-size:.88rem; font-weight:700; flex:1; }
+  .urun-satir input { width:70px; padding:9px; font-size:1rem; text-align:center; border:2px solid #e3eaf2; border-radius:10px; outline:none; }
+  .urun-satir input:focus { border-color:var(--turuncu); }
+  .modal .btn { width:100%; margin-top:14px; }
+  .modal .vazgec { background:#eef2f7; color:#6b7f94; margin-top:8px; box-shadow:none; }
 </style>
 </head>
 <body>
@@ -72,11 +82,31 @@
   <div class="baglanti" id="baglanti">Bağlantı kuruluyor...</div>
 </div>
 
+<div class="modal-kap" id="urun-modal">
+  <div class="modal">
+    <h3>📦 ÜRÜN TESLİM GİRİŞİ</h3>
+    <div class="alt" id="modal-magaza">Mağaza —</div>
+    <div id="urun-listesi"></div>
+    <button class="btn teslim" id="kaydet-btn">✓ KAYDET VE TESLİM ET</button>
+    <button class="btn vazgec" id="vazgec-btn">Vazgeç</button>
+  </div>
+</div>
+
 <script>
   var PIN = '177544';
   var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
   var HAFTA = ['', 'Samsun', 'Amasya', 'Çorum', 'Sivas', 'Yozgat', ''];
   var MAGAZA_SAYISI = 30;
+  var URUNLER = [
+    { ad: 'TARSUS ÇÖREĞİ', sutun: 'D' },
+    { ad: 'ÜNYE ÇÖREĞİ', sutun: 'E' },
+    { ad: 'KANDİL SİMİTİ', sutun: 'F' },
+    { ad: 'KONYA GEVREĞİ', sutun: 'G' },
+    { ad: 'SUSAMLI ÇÖREK', sutun: 'H' },
+    { ad: 'LAVAŞ', sutun: 'I' },
+    { ad: 'GALETA', sutun: 'J' },
+    { ad: 'TAM BUĞDAY LAVAŞ', sutun: 'K' }
+  ];
 </script>
 <script src="magazalar.js"></script>
 <script>
@@ -162,6 +192,73 @@
     return ('0' + tamsayi).slice(-2) + ':' + ('0' + dakika).slice(-2);
   }
   function normalize(s) { return s.toUpperCase().replace('İ', 'I'); }
+
+  var urunModal = document.getElementById('urun-modal');
+  var urunListesi = document.getElementById('urun-listesi');
+  var modalMagaza = document.getElementById('modal-magaza');
+  var beklemeNo = null;
+  var beklemeGiris = null;
+
+  function teslimModalAc(no) {
+    var ad = 'Mağaza ' + no;
+    if (gunlukListeGetir() && gunlukListeGetir()[no - 1]) ad = gunlukListeGetir()[no - 1].m;
+    modalMagaza.textContent = 'Mağaza ' + no + ' — ' + ad;
+    beklemeNo = no;
+    var html = '';
+    for (var u = 0; u < URUNLER.length; u++) {
+      html += '<div class="urun-satir"><span class="ad">' + URUNLER[u].ad + '</span>' +
+        '<input type="number" inputmode="numeric" min="0" value="0" data-sutun="' + URUNLER[u].sutun + '"></div>';
+    }
+    urunListesi.innerHTML = html;
+    urunModal.style.display = 'flex';
+    var ilkInput = urunListesi.querySelector('input');
+    if (ilkInput) ilkInput.focus();
+  }
+
+  function gunlukListeGetir() {
+    var hedef = normalize(sehir);
+    for (var l = 0; l < MAGAZALAR.length; l++) {
+      if (normalize(MAGAZALAR[l].sehir) === hedef) return MAGAZALAR[l].magazalar;
+    }
+    return null;
+  }
+
+  function urunKaydet() {
+    if (beklemeNo === null) return;
+    var girisler = {};
+    var inputs = urunListesi.querySelectorAll('input');
+    for (var i = 0; i < inputs.length; i++) {
+      var deger = parseInt(inputs[i].value, 10);
+      if (isNaN(deger)) deger = 0;
+      girisler[inputs[i].getAttribute('data-sutun')] = deger;
+    }
+    var saat = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    var magazaAd = 'Mağaza ' + beklemeNo;
+    var gunlukListe2 = gunlukListeGetir();
+    if (gunlukListe2 && gunlukListe2[beklemeNo - 1]) magazaAd = gunlukListe2[beklemeNo - 1].m;
+    var adres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + beklemeNo + '.json';
+    fetch(adres, {
+      method: 'PUT',
+      body: JSON.stringify({ saat: saat, urunler: girisler, magaza: magazaAd })
+    }).then(function () {
+      durumlar[beklemeNo] = { saat: saat, urunler: girisler, magaza: magazaAd };
+      urunModal.style.display = 'none';
+      beklemeNo = null;
+      listeCiz();
+    }).catch(function () {
+      baglanti.textContent = 'Bağlantı hatası — kaydedilemedi';
+    });
+  }
+
+  document.getElementById('kaydet-btn').addEventListener('click', urunKaydet);
+  document.getElementById('vazgec-btn').addEventListener('click', function () {
+    urunModal.style.display = 'none';
+    beklemeNo = null;
+  });
+  urunModal.addEventListener('click', function (e) {
+    if (e.target === urunModal) { urunModal.style.display = 'none'; beklemeNo = null; }
+  });
+
   function listeCiz() {
     var gunlukListe = null;
     var hedef = normalize(sehir);
@@ -202,17 +299,7 @@
   liste.addEventListener('click', function (e) {
     var btn = e.target.closest('.btn.teslim');
     if (btn) {
-      var no = btn.getAttribute('data-no');
-      var adres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + sehir + '/' + no + '.json';
-      fetch(adres, {
-        method: 'PUT',
-        body: JSON.stringify({ saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) })
-      }).then(function () {
-        durumlar[no] = { saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) };
-        listeCiz();
-      }).catch(function () {
-        baglanti.textContent = 'Bağlantı hatası — Firebase adresi kurulmadı';
-      });
+      teslimModalAc(btn.getAttribute('data-no'));
       return;
     }
     var geriBtn = e.target.closest('.btn.tamam');
