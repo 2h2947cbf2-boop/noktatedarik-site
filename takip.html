@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e1b2c">
+<title>NOKTA TEDARİK — Canlı Araç Takibi</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Tahoma,Arial,sans-serif; background:#f4f7fb; color:#33465c; }
+  .ust { background:linear-gradient(135deg,#0e1b2c,#1b2f4a); color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 18px rgba(14,27,44,.25); }
+  .ust h1 { font-size:1rem; letter-spacing:2px; }
+  .ust .alt { font-size:.75rem; opacity:.85; margin-top:3px; }
+  .canli-nokta { width:10px; height:10px; border-radius:50%; background:#f77f00; display:inline-block; margin-right:6px; animation:yanip 1.2s infinite; }
+  @keyframes yanip { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+  #harita { height:calc(100vh - 158px); width:100%; }
+  .panel { background:#fff; padding:10px 16px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; border-top:1px solid #e3eaf2; }
+  .panel .kutucuk { flex:1; min-width:110px; text-align:center; }
+  .panel .kutucuk b { display:block; color:var(--turuncu-koyu,#d96b00); font-size:1.05rem; }
+  .panel .kutucuk span { font-size:.68rem; color:#6b7f94; letter-spacing:.5px; }
+  .durum { text-align:center; font-size:.8rem; color:#6b7f94; padding:6px; background:#f8fafc; }
+  #izle-link { color:#fff; background:#f77f00; padding:8px 14px; border-radius:999px; text-decoration:none; font-size:.8rem; font-weight:700; }
+  .marker-arac { background:#f77f00; border:3px solid #fff; border-radius:50% 50% 50% 0; width:22px; height:22px; transform:rotate(-45deg); box-shadow:0 4px 10px rgba(247,127,0,.5); }
+  .marker-yuk { background:#1faa4c; border:3px solid #fff; border-radius:50%; width:14px; height:14px; }
+</style>
+</head>
+<body>
+
+<div class="ust">
+  <div>
+    <h1>🚚 NOKTA TEDARİK · CANLI TAKİP</h1>
+    <div class="alt"><span class="canli-nokta"></span><span id="durum-metin">Araç konumu bekleniyor...</span></div>
+  </div>
+  <a id="izle-link" href="index.html#canli">← Ana Site</a>
+</div>
+
+<div id="harita"></div>
+
+<div class="panel">
+  <div class="kutucuk"><b id="pb-sehir">—</b><span>BUGÜNKÜ ŞEHİR</span></div>
+  <div class="kutucuk"><b id="pb-saat">—</b><span>SON KONUM</span></div>
+  <div class="kutucuk"><b id="pb-teslim">—</b><span>TESLİMAT</span></div>
+  <div class="kutucuk"><b id="pb-mesafe">—</b><span>DURUM</span></div>
+</div>
+<div class="durum" id="bilgi">Canlı takip 5 saniyede bir yenilenir. Şoför paneli açık ve konum izni verilmişse araç haritada görünür.</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
+  var HAFTA = ['', 'Samsun', 'Sinop', 'Amasya', 'Çorum', 'Sivas', 'Tokat'];
+  function tarihYaz(d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function bugunkuSehir() { return HAFTA[new Date().getDay()]; }
+
+  var harita = L.map('harita').setView([40.5, 36.5], 7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(harita);
+
+  var aracMarker = null;
+  var rotaCizgi = null;
+  var sonKonum = null;
+
+  var aracIkon = L.divIcon({ className: '', html: '<div class="marker-arac"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
+
+  function mesafe(a, b) {
+    if (!a || !b) return null;
+    var R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
+    var la1 = a.lat * Math.PI / 180, la2 = b.lat * Math.PI / 180;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
+  var aktifSehir = bugunkuSehir();
+  document.getElementById('pb-sehir').textContent = aktifSehir || 'Hafta sonu';
+
+  function yukleGunluk() {
+    if (!aktifSehir) { document.getElementById('pb-teslim').textContent = '0 / 30'; return; }
+    fetch(FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '/' + aktifSehir + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var sayi = 0;
+        if (d) { for (var k in d) { if (d[k] && !d[k].red) sayi++; } }
+        document.getElementById('pb-teslim').textContent = sayi + ' / 30';
+      }).catch(function () { });
+  }
+
+  function yukleKonum() {
+    fetch(FIREBASE_URL + '/konum/guncel.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.lat || !d.lng) {
+          document.getElementById('durum-metin').textContent = 'Araç henüz konum göndermiyor';
+          document.getElementById('pb-mesafe').textContent = 'Bekleniyor';
+          return;
+        }
+        var nokta = [d.lat, d.lng];
+        var mesafeKm = mesafe(sonKonum, { lat: d.lat, lng: d.lng });
+        sonKonum = { lat: d.lat, lng: d.lng };
+        document.getElementById('durum-metin').textContent = 'Araç yolda · son güncelleme ' + (d.saat || '—') + ' · ' + (d.sehir || '');
+        document.getElementById('pb-saat').textContent = d.saat || '—';
+        document.getElementById('pb-mesafe').textContent = (mesafeKm === null || mesafeKm > 2) ? 'Yolda' : 'Duruyor';
+        if (!aracMarker) {
+          aracMarker = L.marker(nokta, { icon: aracIkon }).addTo(harita).bindPopup('<b>🚚 NOKTA TEDARİK</b><br>Son konum: ' + (d.saat || '—'));
+          harita.setView(nokta, 13);
+        } else {
+          aracMarker.setLatLng(nokta);
+          if (mesafeKm !== null && mesafeKm > 0.01) harita.panTo(nokta);
+        }
+      }).catch(function () {
+        document.getElementById('durum-metin').textContent = 'Bağlantı hatası';
+      });
+  }
+
+  function yukleRota() {
+    fetch(FIREBASE_URL + '/konum/gecmis/' + tarihYaz(new Date()) + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d) return;
+        var puanlar = [];
+        var anahtarlar = Object.keys(d).sort();
+        for (var i = 0; i < anahtarlar.length; i++) {
+          var p = d[anahtarlar[i]];
+          if (p && p.lat && p.lng) puanlar.push([p.lat, p.lng]);
+        }
+        if (puanlar.length < 2) return;
+        if (rotaCizgi) { harita.removeLayer(rotaCizgi); }
+        rotaCizgi = L.polyline(puanlar, { color: '#f77f00', weight: 4, opacity: .7 }).addTo(harita);
+      }).catch(function () { });
+  }
+
+  function tazele() {
+    yukleKonum();
+    yukleRota();
+    yukleGunluk();
+  }
+  tazele();
+  setInterval(tazele, 5000);
+</script>
+</body>
+</html>

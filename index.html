@@ -822,6 +822,8 @@
         <polygon class="harita-zemin" points="30.8,37.5 104.6,56.3 298.5,12.5 332.3,56.3 440,81.3 504.6,50 538.5,100 581.5,293.8 467.7,306.3 329.2,337.5 160,331.3 83.1,325 24.6,143.8"/>
         <g class="hatlar">
           <line class="hat" data-hedef="Samsun" x1="350" y1="140" x2="360" y2="50"/>
+          <line class="hat" data-hedef="Sinop" x1="350" y1="140" x2="80" y2="55"/>
+          <line class="hat" data-hedef="Giresun" x1="350" y1="140" x2="565" y2="45"/>
           <line class="hat" data-hedef="Amasya" x1="350" y1="140" x2="240" y2="100"/>
           <line class="hat" data-hedef="Çorum" x1="350" y1="140" x2="150" y2="150"/>
           <line class="hat" data-hedef="Sivas" x1="350" y1="140" x2="480" y2="170"/>
@@ -836,6 +838,14 @@
         <g class="market-dot">
           <circle class="nokta" cx="360" cy="50" r="5"/>
           <text x="360" y="68" text-anchor="middle">SAMSUN</text>
+        </g>
+        <g class="market-dot">
+          <circle class="nokta" cx="80" cy="55" r="5"/>
+          <text x="80" y="73" text-anchor="middle">SİNOP</text>
+        </g>
+        <g class="market-dot">
+          <circle class="nokta" cx="565" cy="45" r="5"/>
+          <text x="565" y="63" text-anchor="middle">GİRESUN</text>
         </g>
         <g class="market-dot">
           <circle class="nokta" cx="240" cy="100" r="5"/>
@@ -1621,10 +1631,10 @@
   modalArka.addEventListener('click', function (e) { if (e.target === modalArka) modalKapat(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modalKapat(); });
 
-  var haftalikRota = ['', 'Samsun', 'Amasya', 'Çorum', 'Sivas', 'Yozgat', ''];
-  var ilKoor = { Samsun: { x: 360, y: 50 }, Amasya: { x: 240, y: 100 }, Çorum: { x: 150, y: 150 }, Sivas: { x: 480, y: 170 }, Kayseri: { x: 310, y: 300 }, Yozgat: { x: 215, y: 230 } };
+  var haftalikRota = ['', 'Samsun', 'Sinop', 'Amasya', 'Çorum', 'Sivas', 'Tokat'];
+  var ilKoor = { Samsun: { x: 360, y: 50 }, Sinop: { x: 80, y: 55 }, Giresun: { x: 565, y: 45 }, Amasya: { x: 240, y: 100 }, Çorum: { x: 150, y: 150 }, Sivas: { x: 480, y: 170 }, Kayseri: { x: 310, y: 300 }, Yozgat: { x: 215, y: 230 } };
   var merkez = { x: 350, y: 140 };
-  var ilKm = { Samsun: 150, Amasya: 90, Çorum: 180, Sivas: 95, Yozgat: 160, Kayseri: 220 };
+  var ilKm = { Samsun: 150, Sinop: 210, Giresun: 250, Amasya: 90, Çorum: 180, Sivas: 95, Tokat: 40, Yozgat: 160, Kayseri: 220 };
   var ortalamaHiz = 85;
   var FIREBASE_URL = 'https://nokta-tedarik-default-rtdb.firebaseio.com';
   var firebaseTamam = -1;
