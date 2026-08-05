@@ -185,8 +185,8 @@
     sehirEl.textContent = seciliIl || 'İl seçin';
     document.getElementById('baslik-alt').style.display = seciliIl ? '' : 'none';
     ilceDoldur();
-    listeCiz();
     secimKaydet();
+    yukle();
     donusYapildi = false;
     donusBtn.textContent = '🔄 DÖNÜŞE GEÇ';
     donusBtn.style.background = '';
@@ -486,18 +486,32 @@
   });
 
   function yukle() {
-    fetch(FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + '.json').then(function (r) { return r.json(); }).then(function (d) {
+    var gunlukAdres = FIREBASE_URL + '/gunluk/' + tarihYaz(new Date()) + (seciliIl ? '/' + seciliIl : '') + '.json';
+    fetch(gunlukAdres).then(function (r) { return r.json(); }).then(function (d) {
       durumlar = {};
       if (d) {
-        for (var sehirAd in d) {
-          var sehVeri = d[sehirAd];
-          for (var anahtar in sehVeri) {
-            var kayit = sehVeri[anahtar];
-            if (kayit && (kayit.saat || kayit.red)) {
-              if (kayit.k) durumlar[kayit.k] = kayit;
+        if (seciliIl) {
+          for (var anahtar2 in d) {
+            var kayit2 = d[anahtar2];
+            if (kayit2 && (kayit2.saat || kayit2.red)) {
+              if (kayit2.k) durumlar[kayit2.k] = kayit2;
               else {
-                var bul = magazaBul(anahtar);
-                if (bul) durumlar[bul.magaza.k] = kayit;
+                var bul2 = magazaBul(anahtar2);
+                if (bul2) durumlar[bul2.magaza.k] = kayit2;
+              }
+            }
+          }
+        } else {
+          for (var sehirAd in d) {
+            var sehVeri = d[sehirAd];
+            for (var anahtar in sehVeri) {
+              var kayit = sehVeri[anahtar];
+              if (kayit && (kayit.saat || kayit.red)) {
+                if (kayit.k) durumlar[kayit.k] = kayit;
+                else {
+                  var bul = magazaBul(anahtar);
+                  if (bul) durumlar[bul.magaza.k] = kayit;
+                }
               }
             }
           }
@@ -517,7 +531,7 @@
   function baslat() {
     ilDoldur();
     yukle();
-    setInterval(yukle, 3000);
+    setInterval(yukle, 2000);
   }
 
   var bildirimIsmi = 'NOKTA TEDARİK';
